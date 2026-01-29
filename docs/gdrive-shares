@@ -1,0 +1,9 @@
+"Cherry Line Files"
+Total objects: 8.751k (8751)
+Total size: 5.146 GiB (5525478315 Byte)
+
+"Traina Cherry Pit Project"
+Total objects: 49.772k (49772)
+Total size: 28.345 GiB (30434830563 Byte)
+
+rclone mount gdrive: ./gdrive --daemon --drive-shared-with-me
