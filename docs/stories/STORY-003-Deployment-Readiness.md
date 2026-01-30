@@ -4,8 +4,8 @@
 Ensure the cherry pit detection model is fully compatible with the production ROS2 system and meets real-time latency requirements before final deployment.
 
 ## Acceptance Criteria
-- [ ] Train a "drop-in replacement" model (Unnormalized) that matches or beats production accuracy (>93%).
-- [ ] Verify inference latency is <30ms per frame on CPU (matching baseline).
+- [x] Train a "drop-in replacement" model (Unnormalized) that matches or beats production accuracy (>93%).
+- [x] Verify inference latency is <30ms per frame on CPU (matching baseline).
 - [ ] Deploy the final model weights to `cherry_system/cherry_detection/resource/`.
 
 ## Context Scope
@@ -34,5 +34,11 @@ Ensure the cherry pit detection model is fully compatible with the production RO
    - Copy to `cherry_system/...`.
 
 ## Notes
-- Production Baseline: 92.99% Accuracy, ~25ms inference.
-- Best Candidate (Normalized): 93.96% Accuracy.
+- Production Baseline: 92.99% Accuracy, ~16ms inference (CPU).
+- **Unnormalized Model Evaluation (2026-01-30):**
+    - **Accuracy:** 94.05% (Exceeds target of 93%).
+    - **Initial Latency:** ~168ms (Failed target).
+    - **Issue:** Weights contained "denormal" values causing CPU slowdown.
+    - **Fix:** Applied zeroing of denormal values (< 1e-35).
+    - **Final Latency:** ~16.7ms (Matches baseline).
+    - **Status:** Ready for deployment.

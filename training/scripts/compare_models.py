@@ -123,6 +123,11 @@ def main():
         "--prod-model", type=str, required=True, help="Path to production model .pt"
     )
     parser.add_argument(
+        "--unnormalized",
+        action="store_true",
+        help="Specify if the NEW model expects unnormalized data (0-255). Default is False (ImageNet norm).",
+    )
+    parser.add_argument(
         "--device", type=str, default="cuda" if torch.cuda.is_available() else "cpu"
     )
 
@@ -170,10 +175,23 @@ def main():
         prod_model, val_loader_norm, device, "Production Model (With Norm Fix)"
     )
 
-    # C. New Model (With Normalization - Intended Usage)
-    metrics_new = evaluate(
-        new_model, val_loader_norm, device, f"New Model ({args.architecture})"
-    )
+    # C. New Model
+    if args.unnormalized:
+        # If new model is unnormalized, evaluate it on RAW data
+        metrics_new = evaluate(
+            new_model,
+            val_loader_raw,
+            device,
+            f"New Model ({args.architecture} - Unnormalized)",
+        )
+    else:
+        # Default: Evaluate on NORMALIZED data
+        metrics_new = evaluate(
+            new_model,
+            val_loader_norm,
+            device,
+            f"New Model ({args.architecture} - Normalized)",
+        )
 
     # 4. Report
     print_metrics(metrics_prod_raw, "Production Model (Baseline)")
