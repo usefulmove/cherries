@@ -1,0 +1,36 @@
+experiment:
+  name: resnet50_augmented_unnormalized
+  description: "ResNet50 with Augmentation but NO Normalization (Drop-in replacement for production)"
+
+data:
+  root: "../cherry_classification/data"
+  batch_size: 32
+  num_workers: 4
+  input_size: 128
+  normalize: false
+  augmentation: true
+
+model:
+  architecture: resnet50
+  pretrained: true
+  num_classes: 2
+  freeze_backbone: false
+
+training:
+  epochs: 30
+  optimizer: adam
+  learning_rate: 0.0001
+  weight_decay: 0.00001
+  use_scheduler: false
+  device: cuda
+  mixed_precision: false
+
+checkpointing:
+  save_every: 5
+  save_best: true
+  output_dir: "./outputs/resnet50_augmented_unnormalized"
+
+logging:
+  log_file: "metrics.json"
+  print_every: 1
+  save_confusion_matrix: true

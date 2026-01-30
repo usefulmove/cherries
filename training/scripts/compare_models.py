@@ -15,38 +15,42 @@ sys.path.append(str(Path(__file__).parent.parent))
 
 from src.data import get_dataloaders
 from src.metrics import calculate_metrics
+from src.model import create_classifier
 
 
 def load_prod_model(path, device):
     """Load production model (ResNet50 state dict)."""
-    # Create model structure
-    model = resnet50()
-    num_ftrs = model.fc.in_features
-    model.fc = nn.Linear(num_ftrs, 2)
+    # Production model is always ResNet50
+    model = create_classifier(
+        architecture="resnet50",
+        num_classes=2,
+        pretrained=False,  # We load weights manually
+        device=device,
+    )
 
     # Load state dict
     print(f"Loading weights from: {path}")
     state_dict = torch.load(path, map_location=device)
     model.load_state_dict(state_dict)
 
-    model = model.to(device)
     model.eval()
     return model
 
 
-def load_new_model(path, device):
-    """Load new model (ResNet50 state dict)."""
-    # Create model structure
-    model = resnet50()
-    num_ftrs = model.fc.in_features
-    model.fc = nn.Linear(num_ftrs, 2)
+def load_new_model(path, architecture, device):
+    """Load new model with specified architecture."""
+    model = create_classifier(
+        architecture=architecture,
+        num_classes=2,
+        pretrained=False,  # We load weights manually
+        device=device,
+    )
 
     # Load state dict
     print(f"Loading weights from: {path}")
     state_dict = torch.load(path, map_location=device)
     model.load_state_dict(state_dict)
 
-    model = model.to(device)
     model.eval()
     return model
 
@@ -110,6 +114,12 @@ def main():
         "--new-model", type=str, required=True, help="Path to new model .pt"
     )
     parser.add_argument(
+        "--architecture",
+        type=str,
+        default="resnet50",
+        help="Architecture of new model (resnet50, mobilenet_v3_large, efficientnet_b0)",
+    )
+    parser.add_argument(
         "--prod-model", type=str, required=True, help="Path to production model .pt"
     )
     parser.add_argument(
@@ -143,7 +153,7 @@ def main():
 
     # 2. Load Models
     print("\nLoading models...")
-    new_model = load_new_model(args.new_model, device)
+    new_model = load_new_model(args.new_model, args.architecture, device)
     prod_model = load_prod_model(args.prod_model, device)
 
     # 3. Evaluate
@@ -162,7 +172,7 @@ def main():
 
     # C. New Model (With Normalization - Intended Usage)
     metrics_new = evaluate(
-        new_model, val_loader_norm, device, "New Model (Trained with Norm)"
+        new_model, val_loader_norm, device, f"New Model ({args.architecture})"
     )
 
     # 4. Report
