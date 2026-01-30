@@ -50,6 +50,7 @@ outputs/
 /training/outputs/
 /training/test_output/
 /training/.venv/
+/training/experiments/
 
 # Dataset (clone separately, don't commit)
 cherry_classification/

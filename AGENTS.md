@@ -50,7 +50,8 @@ WORKING CONTEXT (ephemeral, token-limited)
     | <- Select (load)     -> Write (persist)
     v                         v
 PERSISTENT CONTEXT (markdown, durable)
-  |-- Core Docs (PRD, Architecture, Standards)
+  |-- Core Docs (PRD, Standards)
+  |-- Architecture (Layered Modules)
   |-- Stories (active tasks)
   |-- Reference (conventions, completed work)
   |-- Skills (on-demand capabilities)
@@ -68,8 +69,10 @@ REFERENCE CONTEXT (external, queryable)
 docs/
   core/           # Foundational docs (rarely change)
     PRD.md        # Problem, goals, scope, requirements
-    ARCHITECTURE.md  # System design (when needed)
     STANDARDS.md  # Coding conventions, patterns
+  architecture/   # System design modules
+    INDEX.md      # Entry point / Routing table
+    .../          # Subdirectories per layer/module
   stories/        # Active units of work
   reference/      # Read-only knowledge
     completed/    # Archived stories
@@ -83,7 +86,7 @@ When an agent encounters this file in a new project:
 
 **Step 1: Create structure**
 ```bash
-mkdir -p docs/{core,stories,reference/completed,skills,logs}
+mkdir -p docs/{core,architecture,stories,reference/completed,skills,logs}
 ```
 
 **Step 2: Gather context**
@@ -96,8 +99,8 @@ Prompt the human for:
 **Step 3: Generate PRD**
 Create `docs/core/PRD.md` from the conversation.
 
-**Step 4: Architecture (if needed)**
-For non-trivial systems, create `docs/core/ARCHITECTURE.md`.
+**Step 4: Architecture**
+Create `docs/architecture/INDEX.md` and initial modules based on the system complexity.
 
 **Step 5: First story**
 If the scope is clear, create the first story in `docs/stories/`.
@@ -106,10 +109,15 @@ If the scope is clear, create the first story in `docs/stories/`.
 
 ## 6. Document Lifecycle
 
-**Core Docs** (PRD, Architecture, Standards)
+**Core Docs** (PRD, Standards)
 - Update in place when scope or direction changes
 - Keep current—don't preserve history in the doc
 - These are the source of truth
+
+**Architecture Modules**
+- Modular files (e.g., `docs/architecture/layer/ARCHITECTURE.md`)
+- Update specific modules as the system evolves
+- Use `INDEX.md` to map new components
 
 **Stories**
 - Create when planning work
@@ -130,7 +138,17 @@ If the scope is clear, create the first story in `docs/stories/`.
 - Append session summaries after compaction
 - Prune older logs when they no longer inform future work
 
-## 7. Context Scope
+## 7. Discovery Protocol
+
+Agents must use the **Discoverable Architecture** pattern to avoid context overload.
+
+1.  **Start at `docs/architecture/INDEX.md`**: Read the routing table to find the relevant system layer.
+2.  **Drill Down**: Read the `ARCHITECTURE.md` in the specific layer's directory.
+3.  **Follow Links**: Use the "Discovery Links" in that module to find specific code or reference docs.
+
+**Do NOT** read the entire `docs/` folder into context. Be surgical.
+
+## 8. Context Scope
 
 Every story declares its context boundaries:
 
@@ -142,7 +160,7 @@ Every story declares its context boundaries:
 - src/auth/session.ts
 
 **Read** (files for reference only):
-- docs/core/ARCHITECTURE.md
+- docs/architecture/auth_layer/ARCHITECTURE.md
 - src/auth/types.ts
 
 **Exclude** (ignore these):
@@ -156,7 +174,7 @@ Every story declares its context boundaries:
 - Agent should avoid loading Excluded paths into context
 - Scope changes require explicit human approval
 
-## 8. Skills
+## 9. Skills
 
 Skills are discoverable, on-demand capabilities. They follow the [Agent Skills specification](https://agentskills.io/specification).
 
@@ -188,7 +206,7 @@ description: What this does and when to use it.
 
 **Skills may reference other skills.** Agent follows references as needed.
 
-## 9. Compaction
+## 10. Compaction
 
 Compaction moves insights from working context to persistent context.
 
@@ -206,7 +224,7 @@ Compaction moves insights from working context to persistent context.
 5. Update core docs if new patterns or decisions emerged
 6. Continue with fresh working context
 
-## 10. Templates
+## 11. Templates
 
 Templates are guidelines, not rigid forms. Start minimal, expand as needed.
 
@@ -245,31 +263,28 @@ What does success look like? How will we measure it?
 - ...
 ```
 
-### Architecture
-
-Create when the system has multiple components or non-obvious structure.
+### Architecture Module
 
 ```markdown
-# [Project Name] Architecture
+---
+name: [Module Name]
+layer: [Hardware | Driver | Logic | AI]
+impact_area: [e.g. Latency, Accuracy]
+---
 
-## Overview
-High-level description of the system.
+# [Module Name]
 
-## Components
-| Component | Responsibility |
-|-----------|----------------|
-| ... | ... |
+## Responsibility
+What this part of the system does.
 
-## Key Decisions
-| Decision | Rationale |
-|----------|-----------|
-| ... | ... |
+## Key Components
+- `path/to/file.py`: Responsibility
 
-## Tech Stack
+## Design Decisions
 - ...
 
-## Integration Points
-- ...
+## Discovery Links
+- [Related Skill or Doc](./path/to/doc.md)
 ```
 
 ### Story
@@ -323,7 +338,7 @@ What was accomplished this session.
 - ...
 ```
 
-## 11. Agent Guidelines
+## 12. Agent Guidelines
 
 **Search first.** Exhaust search tools (grep, glob, LSP) before asking for file paths or context.
 
