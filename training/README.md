@@ -276,6 +276,34 @@ After training completes:
    - Try different learning rates or optimizers
    - Increase training epochs if underfitting
 
+## Model Evaluation & Comparison
+
+We maintain a dedicated script to benchmark new models against the production baseline.
+
+### Comparing Models
+
+Use `scripts/compare_models.py` to evaluate a new candidate model against the current production weights. This script runs three evaluations:
+1. **Production Model (Baseline):** Raw images (no normalization) - matches current system.
+2. **Production Model (Normalized):** Sanity check (usually fails if model wasn't trained with norm).
+3. **New Model:** Normalized images - standard PyTorch practice.
+
+```bash
+python training/scripts/compare_models.py \
+    --new-model training/outputs/my_experiment/model_best.pt \
+    --prod-model cherry_system/cherry_detection/resource/cherry_classification.pt \
+    --data-root ../cherry_classification/data
+```
+
+**Output Example:**
+```text
+===============================================================================================
+Metric          | Prod (Current)         | Prod (Fixed)           | New Model             
+-----------------------------------------------------------------------------------------------
+Accuracy        | 0.9299                 | 0.4617                 | 0.9258                
+Precision       | 0.9303                 | 0.2308                 | 0.9272                
+...
+```
+
 ## References
 
 - **Dataset:** https://github.com/weshavener/cherry_classification
