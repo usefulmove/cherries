@@ -57,6 +57,10 @@ def get_transforms(
             [
                 transforms.RandomHorizontalFlip(0.5),
                 transforms.RandomVerticalFlip(0.5),
+                transforms.RandomRotation(degrees=180),
+                transforms.RandomAffine(
+                    degrees=0, translate=(0.1, 0.1), scale=(0.9, 1.1)
+                ),
                 transforms.ColorJitter(
                     brightness=0.2, contrast=0.2, saturation=0.1, hue=0.05
                 ),

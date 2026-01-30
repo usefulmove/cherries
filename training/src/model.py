@@ -10,7 +10,88 @@ from pathlib import Path
 
 import torch
 import torch.nn as nn
-from torchvision.models import resnet50, ResNet50_Weights
+from torchvision.models import (
+    resnet50,
+    ResNet50_Weights,
+    mobilenet_v3_large,
+    MobileNet_V3_Large_Weights,
+    efficientnet_b0,
+    EfficientNet_B0_Weights,
+)
+
+
+def create_classifier(
+    architecture: str = "resnet50",
+    num_classes: int = 2,
+    pretrained: bool = True,
+    freeze_backbone: bool = False,
+    device: Optional[str] = None,
+) -> nn.Module:
+    """Create a classifier model (factory function).
+
+    Args:
+        architecture: Model architecture ('resnet50', 'mobilenet_v3_large', 'efficientnet_b0')
+        num_classes: Number of output classes
+        pretrained: Whether to load ImageNet pretrained weights
+        freeze_backbone: If True, freeze all layers except final classifier
+        device: Device to move model to
+
+    Returns:
+        Configured PyTorch model
+    """
+    if architecture == "resnet50":
+        return create_resnet50_classifier(
+            num_classes, pretrained, freeze_backbone, device
+        )
+
+    # Determine device
+    if device is None:
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+
+    if architecture == "mobilenet_v3_large":
+        if pretrained:
+            model = mobilenet_v3_large(weights=MobileNet_V3_Large_Weights.IMAGENET1K_V1)
+            print("Loaded MobileNetV3-Large with ImageNet weights")
+        else:
+            model = mobilenet_v3_large(weights=None)
+            print("Loaded MobileNetV3-Large without pretrained weights")
+
+        if freeze_backbone:
+            print("Freezing backbone layers")
+            for param in model.parameters():
+                param.requires_grad = False
+
+        # Replace classifier
+        # MobileNetV3 classifier is a Sequential, last layer is Linear
+        num_ftrs = model.classifier[-1].in_features
+        model.classifier[-1] = nn.Linear(num_ftrs, num_classes)
+        print(f"Replaced classifier head: Linear({num_ftrs}, {num_classes})")
+
+    elif architecture == "efficientnet_b0":
+        if pretrained:
+            model = efficientnet_b0(weights=EfficientNet_B0_Weights.IMAGENET1K_V1)
+            print("Loaded EfficientNet-B0 with ImageNet weights")
+        else:
+            model = efficientnet_b0(weights=None)
+            print("Loaded EfficientNet-B0 without pretrained weights")
+
+        if freeze_backbone:
+            print("Freezing backbone layers")
+            for param in model.parameters():
+                param.requires_grad = False
+
+        # Replace classifier
+        # EfficientNet classifier is a Sequential, last layer is Linear
+        num_ftrs = model.classifier[-1].in_features
+        model.classifier[-1] = nn.Linear(num_ftrs, num_classes)
+        print(f"Replaced classifier head: Linear({num_ftrs}, {num_classes})")
+
+    else:
+        raise ValueError(f"Unknown architecture: {architecture}")
+
+    model = model.to(device)
+    print(f"Model moved to device: {device}")
+    return model
 
 
 def create_resnet50_classifier(

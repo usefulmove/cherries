@@ -1,0 +1,37 @@
+experiment:
+  name: efficientnet_b0
+  description: "EfficientNet-B0 with Augmentation and Scheduler"
+
+data:
+  root: "../cherry_classification/data"
+  batch_size: 32
+  num_workers: 4
+  input_size: 128
+  normalize: true
+  augmentation: true
+
+model:
+  architecture: efficientnet_b0
+  pretrained: true
+  num_classes: 2
+  freeze_backbone: false
+
+training:
+  epochs: 30
+  optimizer: adam
+  learning_rate: 0.0001
+  weight_decay: 0.00001
+  use_scheduler: true
+  scheduler_type: cosine
+  device: cuda
+  mixed_precision: false
+
+checkpointing:
+  save_every: 5
+  save_best: true
+  output_dir: "./outputs/efficientnet_b0"
+
+logging:
+  log_file: "metrics.json"
+  print_every: 1
+  save_confusion_matrix: true

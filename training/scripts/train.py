@@ -30,7 +30,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.data import get_dataloaders
 from src.model import (
-    create_resnet50_classifier,
+    create_classifier,
     save_checkpoint,
     save_model_weights_only,
     load_checkpoint,
@@ -215,7 +215,11 @@ def main():
     print("\n" + "=" * 60)
     print("CREATING MODEL")
     print("=" * 60)
-    model = create_resnet50_classifier(
+    architecture = config["model"].get("architecture", "resnet50")
+    print(f"Architecture: {architecture}")
+
+    model = create_classifier(
+        architecture=architecture,
         num_classes=config["model"]["num_classes"],
         pretrained=config["model"]["pretrained"],
         freeze_backbone=config["model"]["freeze_backbone"],
@@ -243,6 +247,33 @@ def main():
     print(f"Optimizer: {optimizer_name}")
     print(f"Learning rate: {config['training']['learning_rate']}")
     print(f"Weight decay: {config['training']['weight_decay']}")
+
+    # Create scheduler
+    scheduler = None
+    if config["training"].get("use_scheduler", False):
+        scheduler_type = config["training"].get("scheduler_type", "step")
+        print(f"Using scheduler: {scheduler_type}")
+
+        if scheduler_type == "step":
+            scheduler = optim.lr_scheduler.StepLR(
+                optimizer,
+                step_size=config["training"]["scheduler_step_size"],
+                gamma=config["training"]["scheduler_gamma"],
+            )
+        elif scheduler_type == "cosine":
+            # Default T_max to epochs if not specified
+            t_max = config["training"].get(
+                "scheduler_t_max", config["training"]["epochs"]
+            )
+            scheduler = optim.lr_scheduler.CosineAnnealingLR(
+                optimizer,
+                T_max=t_max,
+                eta_min=0,  # Decay to 0
+            )
+        else:
+            print(
+                f"Warning: Unknown scheduler type {scheduler_type}, skipping scheduler"
+            )
 
     # Create loss function
     criterion = nn.CrossEntropyLoss()
@@ -284,6 +315,12 @@ def main():
             model, val_loader, criterion, device, class_names
         )
         print(f"Validation Loss: {val_loss:.4f}")
+
+        # Step scheduler
+        if scheduler:
+            scheduler.step()
+            current_lr = scheduler.get_last_lr()[0]
+            print(f"Stepped scheduler. New LR: {current_lr:.6f}")
 
         # Print validation metrics
         print_metrics_summary(val_metrics, epoch + 1, "val")
