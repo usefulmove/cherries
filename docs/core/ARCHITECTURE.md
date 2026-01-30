@@ -28,9 +28,9 @@ The system uses a modular, service-oriented architecture built on **ROS2 Humble*
 - **2-Stage Pipeline**: Decoupling segmentation from classification allows for simpler models and targeted training.
 - **Service-Based Detection**: Decouples the compute-heavy AI from the time-sensitive control logic.
 - **HDR Imaging**: Multiple exposure handling for consistent performance across lighting variations.
+- **Unnormalized Training**: We train classification models on raw (0-255) images to match the production pipeline, avoiding costly runtime normalization.
 
 ## Known Issues & Technical Debt
 - **Model Loading Bug**: `cherry_detection` currently loads weights from `control_node/resource/` due to a config error.
 - **Code Duplication**: `ai_detector.py` is duplicated across packages.
 - **Dead Code**: `control_node` contains legacy detection files that are no longer executed.
-- **Normalization Mismatch**: Missing ImageNet normalization in the inference pipeline.

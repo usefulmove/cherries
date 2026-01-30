@@ -16,31 +16,17 @@ We ran 4 experiments to beat the production baseline (92.99% accuracy).
 
 We evaluated all models on the validation set (N=1226).
 
-| Model | Accuracy | F1 Score | Inference Speed (CPU) | Result |
-|-------|----------|----------|-----------------------|--------|
-| **Production (Baseline)** | 92.99% | 0.9293 | ~16ms/image | Baseline |
-| **ResNet50 Augmented** | **93.96%** | **0.9392** | ~37ms/image | Good Improvement (+0.97%) |
-| **ResNet50 Scheduler** | 93.80% | 0.9375 | ~34ms/image | Good (+0.81%) |
-| **MobileNetV3 Large** | 91.35% | 0.9132 | **~18ms/image** | Fast but less accurate (-1.64%) |
-| **EfficientNet B0** | 92.66% | 0.9259 | ~25ms/image | Regression (-0.33%) |
+| Model | Variant | Accuracy | F1 Score | Latency (CPU) | Status |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **ResNet50** | Production (Baseline) | 92.99% | 0.9293 | ~16 ms | **Baseline** |
+| **ResNet50** | Augmented (Norm) | 93.96% | 0.9392 | ~37 ms | Archived |
+| **ResNet50** | Scheduler (Norm) | 93.80% | 0.9375 | ~34 ms | Archived |
+| **MobileNetV3** | Large (Norm) | 91.35% | 0.9132 | ~18 ms | Archived |
+| **EfficientNet** | B0 (Norm) | 92.66% | 0.9259 | ~25 ms | Archived |
+| **ResNet50** | **Augmented (Unnorm, Fixed)** | **94.05%** | **0.9397** | **~16.7 ms** | **Best so far** |
 
-## Experiment Set 2: Unnormalized Training & Optimization (2026-01-30)
 
-We trained a "drop-in replacement" model to avoid code changes in the ROS2 node (which currently sends 0-255 raw images).
-
-### Configurations
-5. **ResNet50 Augmented Unnormalized**: ResNet50 + Augmentation, but trained/evaluated on 0-255 input range (No ImageNet normalization).
-
-### Results
-| Model | Accuracy | F1 Score | Inference Speed (CPU) | Result |
-|-------|----------|----------|-----------------------|--------|
-| **ResNet50 Unnormalized** | **94.05%** | **0.9397** | **~16.7ms/image*** | **FINAL WINNER** (+1.06%) |
-
-### *The "Denormal" Latency Issue
-Initial evaluation of the unnormalized model showed severe latency regression (**168ms** vs 16ms).
-- **Cause:** The model weights contained "denormal" floating point numbers (extremely small values near zero but non-zero). CPUs handle these in software, causing massive slowdowns.
-- **Fix:** We wrote a script (`fix_denormals.py`) to zero-out values < 1e-35.
-- **Outcome:** Latency returned to ~16.7ms with no loss in accuracy.
-
-### Next Steps
-*   Deploy `resnet50_augmented_unnormalized` (fixed version) to the cherry system.
+### Analysis
+*   **Data Augmentation works:** Adding Rotation and Affine transforms improved ResNet50 accuracy.
+*   **Unnormalized Training:** Training with **Augmentation** directly on 0-255 input range (matching production) yielded the best results (94.05%).
+*   **Latency Optimization:** We identified and fixed a "denormal" value issue that initially caused 10x latency regression. The fixed unnormalized model matches production speed.
