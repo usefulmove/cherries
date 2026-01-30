@@ -1,0 +1,59 @@
+# ResNet50 Baseline Configuration
+# This config reproduces the existing training setup with ImageNet normalization fix
+
+experiment:
+  name: resnet50_baseline
+  description: "Baseline ResNet50 training with ImageNet normalization"
+
+# Data configuration
+data:
+  # Path to data directory (must contain train/ and val/ subdirectories)
+  # Override with --data-root command line argument
+  root: "../cherry_classification/data"
+  
+  batch_size: 32  # Number of samples per batch
+  num_workers: 4  # Number of data loading workers (reduce if running out of memory)
+  
+  # Image preprocessing
+  input_size: 128  # Match current inference (128x128 images)
+  normalize: true  # Apply ImageNet normalization (CRITICAL for pretrained models)
+  augmentation: false  # Start without augmentation, add later if needed
+
+# Model configuration
+model:
+  architecture: resnet50
+  pretrained: true  # Use ImageNet pretrained weights
+  num_classes: 2  # Binary classification: cherry_clean (0), cherry_pit (1)
+  freeze_backbone: false  # Finetune all layers (not just final fc)
+
+# Training configuration
+training:
+  epochs: 30  # Number of training epochs
+  
+  # Optimizer settings
+  optimizer: adam  # Options: adam, sgd
+  learning_rate: 0.0001  # 1e-4 is conservative for finetuning
+  weight_decay: 0.00001  # 1e-5 for L2 regularization
+  
+  # Learning rate scheduler (optional)
+  use_scheduler: false
+  scheduler_step_size: 10
+  scheduler_gamma: 0.1
+  
+  # Device configuration
+  device: cuda  # Options: cuda, cpu, or auto (auto-detect)
+  
+  # Mixed precision training (speeds up training on modern GPUs)
+  mixed_precision: false  # Set to true for faster training if GPU supports it
+
+# Checkpointing configuration
+checkpointing:
+  save_every: 5  # Save checkpoint every N epochs
+  save_best: true  # Save best model based on validation accuracy
+  output_dir: "./outputs/resnet50_baseline"  # Override with --output-dir
+
+# Logging configuration
+logging:
+  log_file: "metrics.json"  # JSON Lines format for metrics
+  print_every: 1  # Print metrics every N epochs
+  save_confusion_matrix: true  # Save confusion matrix at end of training

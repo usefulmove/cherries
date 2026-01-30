@@ -43,3 +43,13 @@ log/
 *.tmp
 *.bak
 *.orig
+
+# Training outputs
+training_outputs/
+outputs/
+/training/outputs/
+/training/test_output/
+/training/.venv/
+
+# Dataset (clone separately, don't commit)
+cherry_classification/
