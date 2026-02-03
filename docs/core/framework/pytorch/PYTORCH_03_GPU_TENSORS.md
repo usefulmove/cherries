@@ -183,4 +183,4 @@ result = gpu_tensor * cpu_tensor
 
 ## Next Section
 
-**`PYTORCH_04_PREPROCESSING.md`** - Image preprocessing and transforms
+**[04. Preprocessing](PYTORCH_04_PREPROCESSING.md)** - Image preprocessing and transforms

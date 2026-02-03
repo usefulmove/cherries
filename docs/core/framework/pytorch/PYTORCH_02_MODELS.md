@@ -177,4 +177,4 @@ conf, classes = torch.max(probs, 1)
 
 ## Next Section
 
-**`PYTORCH_03_GPU_TENSORS.md`** - Device management, tensor creation, and indexing
+**[03. GPU & Tensors](PYTORCH_03_GPU_TENSORS.md)** - Device management, tensor creation, and indexing

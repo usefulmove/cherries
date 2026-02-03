@@ -34,5 +34,5 @@ Located in `cherry_system/cherry_interfaces/`. This package contains the ROS2 de
 *   **ROS2 Distribution**: Humble Hawksbill.
 
 ## Discovery Links
-*   [Global Standards](../../core/STANDARDS.md)
-*   [Legacy System Architecture](./legacy_overview.md) (To be migrated)
+*   [Global Standards](../../../core/STANDARDS.md)
+*   [Legacy System Architecture](../../reference/legacy/cherry-processing-system-overview.md)

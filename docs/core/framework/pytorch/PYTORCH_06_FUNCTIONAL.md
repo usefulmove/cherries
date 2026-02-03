@@ -205,4 +205,4 @@ F.binary_cross_entropy(input, target)
 
 ## Next Section
 
-**`PYTORCH_07_TRAINING.md`** - Training code examples (Mask R-CNN and ResNet50)
+**[07. Training](PYTORCH_07_TRAINING.md)** - Training code examples (Mask R-CNN and ResNet50)

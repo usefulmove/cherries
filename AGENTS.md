@@ -1,6 +1,14 @@
 # Context Engineering Protocol
 
+[enso – a context management structure for agentic coding](https://github.com/usefulmove/enso)
+
+enso v0.2.0
+
 A single-file seed for managing context across LLM agents, sessions, and tools.
+
+---
+
+**IMPORTANT:** Prefer retrieval-led reasoning over pre-training-led reasoning for framework-specific and domain-specific tasks.
 
 ## 1. Purpose
 
@@ -14,18 +22,18 @@ This protocol defines how to manage context when working with LLM agents on soft
 
 The goal: maintain the smallest set of high-signal tokens needed for the next step.
 
-## 2. Principles
+## 2. The Six Operations
 
 **Context is finite.** The context window is the agent's working memory. Every token competes for attention. Treat context as a scarce resource.
 
-**Four operations manage context:**
-
-| Operation | Action |
-|-----------|--------|
-| **Write** | Persist information outside the context window |
-| **Select** | Pull relevant information into working context |
-| **Compress** | Summarize to retain only essential tokens |
-| **Isolate** | Split context across agents or scopes |
+| Operation | What It Does | Why It Matters |
+|-----------|--------------|----------------|
+| **Write** | Persist information outside the context window | Working memory is temporary; persistence survives sessions |
+| **Select** | Load only what's needed right now | Don't waste tokens on irrelevant context |
+| **Probe** | Actively search (grep, LSP, glob) for answers | Don't assume you know what's in the codebase |
+| **Compress** | Summarize to fit the token budget | When context gets full, condense instead of dropping |
+| **Isolate** | Split work across multiple scopes | Divide complex tasks to stay within limits |
+| **Assign** | Choose the ideal agent for each task | Match task requirements to agent capabilities |
 
 **Keep current, not historical.** Documents reflect the present state. Git preserves history. Don't accumulate cruft in docs.
 
@@ -50,8 +58,7 @@ WORKING CONTEXT (ephemeral, token-limited)
     | <- Select (load)     -> Write (persist)
     v                         v
 PERSISTENT CONTEXT (markdown, durable)
-  |-- Core Docs (PRD, Standards)
-  |-- Architecture (Layered Modules)
+  |-- Core Docs (PRD, Architecture, Standards)
   |-- Stories (active tasks)
   |-- Reference (conventions, completed work)
   |-- Skills (on-demand capabilities)
@@ -67,17 +74,21 @@ REFERENCE CONTEXT (external, queryable)
 
 ```
 docs/
-  core/           # Foundational docs (rarely change)
+  core/           # Source of Truth (PRD, Architecture)
     PRD.md        # Problem, goals, scope, requirements
     STANDARDS.md  # Coding conventions, patterns
-  architecture/   # System design modules
-    INDEX.md      # Entry point / Routing table
-    .../          # Subdirectories per layer/module
-  stories/        # Active units of work
-  reference/      # Read-only knowledge
+    architecture/ # System design modules
+      INDEX.md    # Entry point / Routing table
+      .../        # Subdirectories per layer/module
+    framework/    # Framework documentation
+      pytorch/    # PyTorch tutorials and reference
+        INDEX.md
+  stories/        # Active Units of Work (The "Ticket" system)
+  reference/      # Long-term Memory (Lessons, Conventions)
     completed/    # Archived stories
-  skills/         # On-demand capabilities (Agent Skills format)
-  logs/           # Session summaries
+    LESSONS.md    # Project learnings and insights
+  skills/         # Local Capabilities (Scripts, Tests)
+  logs/           # Session History
 ```
 
 ## 5. Bootstrapping
@@ -87,62 +98,44 @@ When an agent encounters this file in a new project:
 **Step 1: Create structure**
 ```bash
 mkdir -p docs/{core,architecture,stories,reference/completed,skills,logs}
+touch docs/reference/LESSONS.md
 ```
 
-**Step 2: Gather context**
-Prompt the human for:
-- What problem are we solving?
-- What does success look like?
-- What's in scope? What's out?
-- Any known constraints?
+**Step 2: Add retrieval-led reasoning instruction** to root `AGENTS.md`:
+```
+IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning 
+for framework-specific and domain-specific tasks.
+```
 
-**Step 3: Generate PRD**
-Create `docs/core/PRD.md` from the conversation.
+**Step 3: Gather context** — Prompt the human for the problem, success criteria, scope, and constraints.
 
-**Step 4: Architecture**
-Create `docs/architecture/INDEX.md` and initial modules based on the system complexity.
+**Step 4: Generate PRD** — Create `docs/core/PRD.md` from the conversation.
 
-**Step 5: First story**
-If the scope is clear, create the first story in `docs/stories/`.
+**Step 5: System Mapping** — Probe the codebase to create `ARCHITECTURE.md`, identify capabilities, and document conventions.
 
-**Step 6: Begin work**
+**Step 6: First story** — Create the initial story in `docs/stories/`.
+
+**Step 7: Begin work**
 
 ## 6. Document Lifecycle
 
-**Core Docs** (PRD, Standards)
-- Update in place when scope or direction changes
-- Keep current—don't preserve history in the doc
-- These are the source of truth
+Context is living code. Refactor documentation as aggressively as you refactor code. Stale context is technical debt.
 
-**Architecture Modules**
-- Modular files (e.g., `docs/architecture/layer/ARCHITECTURE.md`)
-- Update specific modules as the system evolves
-- Use `INDEX.md` to map new components
+**Core Docs** (PRD, Architecture, Standards) — Update in place when scope changes. Don't preserve history—git does.
 
-**Stories**
-- Create when planning work
-- Update during execution (notes, learnings)
-- Move to `docs/reference/completed/` when done
+**Stories** — Create when planning, update during execution, move to `reference/completed/` when done.
 
-**Reference**
-- Conventions, patterns, and completed stories
-- Read-only during execution
-- Prune when no longer relevant
+**Reference** — Conventions and lessons. Read-only during execution; prune when irrelevant. **Update `LESSONS.md` with new learnings.**
 
-**Skills**
-- Add as capabilities are needed
-- Update when procedures change
-- Remove when obsolete
+**Skills** — Add as needed, update when procedures change, remove when obsolete.
 
-**Logs**
-- Append session summaries after compaction
-- Prune older logs when they no longer inform future work
+**Logs** — Append session summaries after compaction; prune when no longer informative.
 
 ## 7. Discovery Protocol
 
 Agents must use the **Discoverable Architecture** pattern to avoid context overload.
 
-1.  **Start at `docs/architecture/INDEX.md`**: Read the routing table to find the relevant system layer.
+1.  **Start at `docs/core/architecture/INDEX.md`**: Read the routing table to find the relevant system layer.
 2.  **Drill Down**: Read the `ARCHITECTURE.md` in the specific layer's directory.
 3.  **Follow Links**: Use the "Discovery Links" in that module to find specific code or reference docs.
 
@@ -160,7 +153,7 @@ Every story declares its context boundaries:
 - src/auth/session.ts
 
 **Read** (files for reference only):
-- docs/architecture/auth_layer/ARCHITECTURE.md
+- docs/core/ARCHITECTURE.md
 - src/auth/types.ts
 
 **Exclude** (ignore these):
@@ -170,6 +163,7 @@ Every story declares its context boundaries:
 
 **Enforcement:**
 - Agent must not modify files outside Write scope
+- Read files are a seed; use Probe to dynamically discover related context
 - Agent should consult Read files before making changes
 - Agent should avoid loading Excluded paths into context
 - Scope changes require explicit human approval
@@ -184,45 +178,37 @@ Skills are discoverable, on-demand capabilities. They follow the [Agent Skills s
 ```
 docs/skills/
   skill-name/
-    SKILL.md           # Required: frontmatter + instructions
-    scripts/           # Optional: executable code
-    references/        # Optional: additional docs
-    assets/            # Optional: templates, data files
+    SKILL.md      # Required: frontmatter + when to use
+    scripts/      # Optional: executable code
+    references/   # Optional: additional docs
+    assets/       # Optional: templates, data files
 ```
 
-**Required frontmatter:**
-```yaml
----
-name: skill-name
-description: What this does and when to use it.
----
+**Discovery:** Agent scans directories at session start, reads frontmatter (~100 tokens) for discovery, loads full skill only when needed.
+
+## 9.1. Framework Documentation Index
+
+Store version-matched framework docs in `docs/core/framework/` and add an index to `AGENTS.md`:
+
+```markdown
+## Framework Documentation
+Location: docs/core/framework/
+
+| Section | Files |
+|---------|-------|
+| Routing | routing.md, navigation.md |
+| Caching | cache-directives.md, cache-lifecycle.md |
 ```
 
-**Progressive disclosure:**
-1. Agent scans `docs/skills/` directories at session start
-2. Agent reads frontmatter (~100 tokens per skill) for discovery
-3. Agent loads full `SKILL.md` only when activating a skill
-4. Agent loads `scripts/`, `references/`, `assets/` only when needed
-
-**Skills may reference other skills.** Agent follows references as needed.
+**Why this works:** Always present, standard Markdown, retrieval-led (100% accuracy vs. 79% with on-demand skills).
 
 ## 10. Compaction
 
-Compaction moves insights from working context to persistent context.
+Moves insights from working context to persistent context.
 
-**Triggers:**
-- Approaching context budget (~80% utilization)
-- Completing a story or major task
-- Conversation becoming circular or confused
-- Ending a session
+**Triggers:** ~80% token utilization, completing a story, circular conversation, ending session.
 
-**Process:**
-1. Summarize key decisions and insights
-2. List artifacts created or modified
-3. Note open items and next steps
-4. Write summary to `docs/logs/YYYY-MM-DD-topic.md`
-5. Update core docs if new patterns or decisions emerged
-6. Continue with fresh working context
+**Process:** Summarize decisions, list artifacts, extract lessons to `LESSONS.md`, write summary to `logs/`, continue with fresh context.
 
 ## 11. Templates
 
@@ -230,61 +216,37 @@ Templates are guidelines, not rigid forms. Start minimal, expand as needed.
 
 ### PRD
 
-**Start with (required):**
-
 ```markdown
-# [Project Name] PRD
+# [Project] PRD
 
 ## Problem
 What problem are we solving? Why does it matter?
 
 ## Goals
-What does success look like? How will we measure it?
+What does success look like?
 
 ## Scope
-**In scope:**
-- ...
-
-**Out of scope:**
-- ...
+**In scope:** ...
+**Out of scope:** ...
 ```
 
-**Expand when ready:**
+### Architecture
 
 ```markdown
-## Requirements
-**Functional:**
-- ...
+# [Project] Architecture
 
-**Non-functional:**
-- ...
+## Overview
+High-level description.
 
-## Constraints
-- ...
-```
+## Components
+| Component | Responsibility |
+|-----------|----------------|
+| ... | ... |
 
-### Architecture Module
-
-```markdown
----
-name: [Module Name]
-layer: [Hardware | Driver | Logic | AI]
-impact_area: [e.g. Latency, Accuracy]
----
-
-# [Module Name]
-
-## Responsibility
-What this part of the system does.
-
-## Key Components
-- `path/to/file.py`: Responsibility
-
-## Design Decisions
-- ...
-
-## Discovery Links
-- [Related Skill or Doc](./path/to/doc.md)
+## Key Decisions
+| Decision | Rationale |
+|----------|-----------|
+| ... | ... |
 ```
 
 ### Story
@@ -293,27 +255,18 @@ What this part of the system does.
 # [STORY-ID] [Title]
 
 ## Goal
-What are we trying to accomplish? Why now?
+What are we trying to accomplish?
 
 ## Acceptance Criteria
 - [ ] ...
-- [ ] ...
 
 ## Context Scope
-**Write:**
-- ...
+**Write:** ...
+**Read:** ...
+**Exclude:** ...
 
-**Read:**
-- ...
-
-**Exclude:**
-- ...
-
-## Approach
-High-level implementation strategy.
-
-## Notes
-(Fill during/after implementation)
+## Approach & Verification Plan
+How to verify success (tests, manual steps).
 ```
 
 ### Session Summary
@@ -323,15 +276,12 @@ High-level implementation strategy.
 **Date:** YYYY-MM-DD
 
 ## Overview
-What was accomplished this session.
+What was accomplished.
 
 ## Key Decisions
 - ...
 
 ## Artifacts Modified
-- ...
-
-## Open Items
 - ...
 
 ## Next Steps
@@ -340,14 +290,11 @@ What was accomplished this session.
 
 ## 12. Agent Guidelines
 
-**Search first.** Exhaust search tools (grep, glob, LSP) before asking for file paths or context.
-
-**Read before writing.** Always consult the Context Scope. Read the Read files before modifying Write files.
-
-**Update, don't accumulate.** Modify existing docs to reflect current state. Don't append history—git tracks that.
-
-**Compact proactively.** Don't wait for context overflow. Summarize and persist insights regularly.
-
-**Stay in scope.** Don't modify files outside the story's Write scope without explicit approval.
-
-**Be concise.** Terse, technical communication. No filler.
+- **Search first.** Exhaust search tools before asking for paths.
+- **Tool Selection.** Skills for vertical workflows, framework docs for APIs, external tools for navigation.
+- **Prefer retrieval over training.** Consult `docs/` for framework specifics.
+- **Read before writing.** Check Context Scope and Read files.
+- **Update, don't accumulate.** Modify docs in place—git tracks history.
+- **Compact proactively.** Don't wait for context overflow.
+- **Stay in scope.** Don't modify files outside Write scope without approval.
+- **Be concise.** Terse, technical communication.

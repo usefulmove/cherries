@@ -182,4 +182,4 @@ Classification
 
 ## Next Section
 
-**`PYTORCH_05_INFERENCE.md`** - Inference patterns and no_grad context
+**[05. Inference](PYTORCH_05_INFERENCE.md)** - Inference patterns and no_grad context

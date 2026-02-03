@@ -173,4 +173,4 @@ classifications
 
 ## Next Section
 
-**`PYTORCH_06_FUNCTIONAL.md`** - Functional operations (conv2d, softmax, torch.where)
+**[06. Functional Operations](PYTORCH_06_FUNCTIONAL.md)** - Functional operations (conv2d, softmax, torch.where)

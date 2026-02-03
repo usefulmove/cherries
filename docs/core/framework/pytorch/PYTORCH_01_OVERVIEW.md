@@ -127,4 +127,4 @@ def detect(self, image_color, logger):
 
 ## Next Section
 
-**`PYTORCH_02_MODELS.md`** - Model definition and loading patterns
+**[02. Models](PYTORCH_02_MODELS.md)** - Model definition and loading patterns

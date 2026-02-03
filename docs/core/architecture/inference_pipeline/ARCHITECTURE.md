@@ -36,4 +36,4 @@ The "Brain" of the inspection. Detects cherries in the image (Segmentation) and 
 *   **Code**: `src/cherry_system/cherry_detection/`
 *   **Training Code**: `training/`
 *   **Analysis**: [ResNet50 Analysis](./RESNET50_ANALYSIS.md)
-*   **Skill**: `docs/skills/benchmark-latency/`
+*   **Skill**: `../../skills/benchmark-latency/`

@@ -221,4 +221,4 @@ final labels [N]
 
 ## Next Section
 
-**`PYTORCH_09_COMPLETE_PIPELINE.md`** - End-to-end walkthrough
+**[09. Complete Pipeline](PYTORCH_09_COMPLETE_PIPELINE.md)** - End-to-end walkthrough

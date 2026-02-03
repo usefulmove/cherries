@@ -33,11 +33,11 @@ graph TD
 
 | Layer | Responsibility | Directory |
 |-------|----------------|-----------|
-| **[System Overview](./system_overview/ARCHITECTURE.md)** | Global data flow, `cherry_interfaces`, and high-level design constraints. | `docs/architecture/system_overview/` |
-| **[Hardware I/O](./hardware_io/ARCHITECTURE.md)** | Physical interfacing: Encoders, Strobes, Pneumatics, Digital I/O. | `docs/architecture/hardware_io/` |
-| **[Vision Acquisition](./vision_acquisition/ARCHITECTURE.md)** | Camera drivers (`avt_vimba`), image capture, and synchronization. | `docs/architecture/vision_acquisition/` |
-| **[Inference Pipeline](./inference_pipeline/ARCHITECTURE.md)** | Deep learning models (Mask R-CNN, ResNet50), training workflows, and detection services. | `docs/architecture/inference_pipeline/` |
-| **[Tracking & Orchestration](./tracking_orchestration/ARCHITECTURE.md)** | The Brain: `control_node`, belt tracking logic, robot comms, and visualization. | `docs/architecture/tracking_orchestration/` |
+| **[System Overview](./system_overview/ARCHITECTURE.md)** | Global data flow, `cherry_interfaces`, and high-level design constraints. | `docs/core/architecture/system_overview/` |
+| **[Hardware I/O](./hardware_io/ARCHITECTURE.md)** | Physical interfacing: Encoders, Strobes, Pneumatics, Digital I/O. | `docs/core/architecture/hardware_io/` |
+| **[Vision Acquisition](./vision_acquisition/ARCHITECTURE.md)** | Camera drivers (`avt_vimba`), image capture, and synchronization. | `docs/core/architecture/vision_acquisition/` |
+| **[Inference Pipeline](./inference_pipeline/ARCHITECTURE.md)** | Deep learning models (Mask R-CNN, ResNet50), training workflows, and detection services. | `docs/core/architecture/inference_pipeline/` |
+| **[Tracking & Orchestration](./tracking_orchestration/ARCHITECTURE.md)** | The Brain: `control_node`, belt tracking logic, robot comms, and visualization. | `docs/core/architecture/tracking_orchestration/` |
 
 ## Discovery Protocol
 **Agents:** Do not read all files.

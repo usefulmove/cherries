@@ -350,4 +350,4 @@ for epoch in range(num_epochs):
 
 ## Next Section
 
-**`PYTORCH_08_POSTPROCESSING.md`** - Label assignment, bounding boxes, result aggregation
+**[08. Post-Processing](PYTORCH_08_POSTPROCESSING.md)** - Label assignment, bounding boxes, result aggregation
