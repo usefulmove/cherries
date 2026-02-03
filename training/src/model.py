@@ -11,6 +11,8 @@ from pathlib import Path
 import torch
 import torch.nn as nn
 from torchvision.models import (
+    resnet18,
+    ResNet18_Weights,
     resnet50,
     ResNet50_Weights,
     mobilenet_v3_large,
@@ -30,7 +32,7 @@ def create_classifier(
     """Create a classifier model (factory function).
 
     Args:
-        architecture: Model architecture ('resnet50', 'mobilenet_v3_large', 'efficientnet_b0')
+        architecture: Model architecture ('resnet18', 'resnet50', 'mobilenet_v3_large', 'efficientnet_b0')
         num_classes: Number of output classes
         pretrained: Whether to load ImageNet pretrained weights
         freeze_backbone: If True, freeze all layers except final classifier
@@ -39,6 +41,11 @@ def create_classifier(
     Returns:
         Configured PyTorch model
     """
+    if architecture == "resnet18":
+        return create_resnet18_classifier(
+            num_classes, pretrained, freeze_backbone, device
+        )
+
     if architecture == "resnet50":
         return create_resnet50_classifier(
             num_classes, pretrained, freeze_backbone, device
@@ -91,6 +98,55 @@ def create_classifier(
 
     model = model.to(device)
     print(f"Model moved to device: {device}")
+    return model
+
+
+def create_resnet18_classifier(
+    num_classes: int = 2,
+    pretrained: bool = True,
+    freeze_backbone: bool = False,
+    device: Optional[str] = None,
+) -> nn.Module:
+    """Create ResNet18 binary classifier for cherry pit detection.
+
+    Smaller, faster alternative to ResNet50 with fewer parameters.
+    Architecture similar to ResNet50 but with 11.7M params vs 25.6M.
+
+    Args:
+        num_classes: Number of output classes (default: 2 for clean/pit)
+        pretrained: Whether to load ImageNet pretrained weights
+        freeze_backbone: If True, freeze all layers except final fc layer
+        device: Device to move model to ('cuda', 'cpu', or None for auto-detect)
+
+    Returns:
+        ResNet18 model configured for binary classification
+    """
+    # Load ResNet18
+    if pretrained:
+        model = resnet18(weights=ResNet18_Weights.IMAGENET1K_V1)
+        print("Loaded ResNet18 with ImageNet pretrained weights")
+    else:
+        model = resnet18(weights=None)
+        print("Loaded ResNet18 without pretrained weights")
+
+    # Freeze backbone if requested
+    if freeze_backbone:
+        print("Freezing backbone layers (only training final fc layer)")
+        for param in model.parameters():
+            param.requires_grad = False
+
+    # Replace final layer for binary classification
+    # ResNet18 fc layer input features: 512
+    num_ftrs = model.fc.in_features
+    model.fc = nn.Linear(num_ftrs, num_classes)
+    print(f"Replaced final layer: Linear({num_ftrs}, {num_classes})")
+
+    # Move to device
+    if device is None:
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+    model = model.to(device)
+    print(f"Model moved to device: {device}")
+
     return model
 
 
