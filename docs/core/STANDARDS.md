@@ -23,5 +23,6 @@
 - **Environment**: Use PyTorch with `torchvision`.
 - **Configuration**: Use YAML files for experiment hyperparameters.
 - **Sync**: Maintain training scripts locally; execute on Colab via Google Drive staging (Option 2).
+- **Verification**: All notebooks must have a `smoke_test` mode or script to verify logic locally (CPU, 1 epoch, <5 batches) before deployment to Colab.
 - **Versioning**: Git tracks code and configs; Google Drive tracks model weights (`.pt`) and datasets.
 - **Exclusions**: Large binary files (`.pt`) must be kept out of the Git repository via `.gitignore`.

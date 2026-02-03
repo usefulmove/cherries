@@ -88,4 +88,24 @@ Documentation restructuring requires systematic planning to avoid broken links a
 
 ---
 
+### [2026-02-03] ML/Workflow: Notebook Drift requires Local Smoke Tests
+
+**Context:**
+A custom training loop implemented directly in a Colab notebook for differential learning rates diverged from the tested `src/` library code. Specifically, the notebook used a generic `f1_score` key while the library returned `f1`, causing a `KeyError` after the first epoch of training.
+
+**What We Did:**
+Fixed the key error and established a "Smoke Test" protocol: all notebook logic must be verifiable locally (on CPU) with a "Dry Run" mode (1 epoch, limited batches) before being handed off to Colab.
+
+**Outcome:**
+Prevented future "deploy-and-crash" cycles where simple logic errors waste developer time and GPU resources.
+
+**Key Takeaway:**
+Never re-implement core logic in notebooks if possible. If custom logic is needed, implement it in a script, verify it locally, and import it. Always "smoke test" the notebook locally before sync.
+
+**References:**
+- [Colab Optimization Experiments](../../training/notebooks/colab_optimization_experiments.ipynb)
+- [Training on Colab Skill](../skills/training-colab/SKILL.md)
+
+---
+
 *Use the format above for new lessons. Keep entries concise and actionable. Focus on transferable insights rather than situational details.*

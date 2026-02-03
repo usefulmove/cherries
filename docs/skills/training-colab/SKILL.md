@@ -51,6 +51,11 @@ augmentation:
 
 ### Step 2: Sync Code to Google Drive
 
+Before syncing, perform a **Pre-flight Check**:
+1. Run a local smoke test (e.g., `python smoke_test.py` or set `DRY_RUN=True` in your notebook).
+2. Verify that 1 epoch runs on CPU with a few batches.
+3. Only sync after local verification passes.
+
 ```bash
 # From project root
 ./training/scripts/sync_to_drive.sh

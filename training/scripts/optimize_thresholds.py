@@ -42,6 +42,7 @@ def collect_probabilities(
     model: nn.Module,
     dataloader: torch.utils.data.DataLoader,
     device: str,
+    dry_run: bool = False,
 ) -> Tuple[np.ndarray, np.ndarray]:
     """Collect true labels and predicted probabilities.
 
@@ -49,6 +50,7 @@ def collect_probabilities(
         model: Trained model
         dataloader: Data loader
         device: Device to run inference on
+        dry_run: If True, stop after a few batches
 
     Returns:
         Tuple of (y_true, y_probs) where y_probs[:, 1] is pit probability
@@ -58,7 +60,10 @@ def collect_probabilities(
     all_probs = []
 
     with torch.no_grad():
-        for images, labels in dataloader:
+        for i, (images, labels) in enumerate(dataloader):
+            if dry_run and i >= 3:
+                print("Dry run: stopping collection after 3 batches")
+                break
             images = images.to(device)
             outputs = model(images)
             probs = torch.softmax(outputs, dim=1)
@@ -311,6 +316,11 @@ def main():
         default="auto",
         help="Device to use (cuda, cpu, or auto)",
     )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Run a quick smoke test (limit data collection)",
+    )
 
     args = parser.parse_args()
 
@@ -350,7 +360,9 @@ def main():
 
     # Collect probabilities
     print("\nCollecting predictions...")
-    y_true, y_probs = collect_probabilities(model, val_loader, device)
+    y_true, y_probs = collect_probabilities(
+        model, val_loader, device, dry_run=args.dry_run
+    )
     print(f"Collected {len(y_true)} samples")
 
     # Plot probability distributions

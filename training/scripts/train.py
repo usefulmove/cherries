@@ -50,6 +50,7 @@ def train_one_epoch(
     optimizer: optim.Optimizer,
     device: str,
     epoch: int,
+    dry_run: bool = False,
 ) -> float:
     """Train for one epoch.
 
@@ -60,6 +61,7 @@ def train_one_epoch(
         optimizer: Optimizer
         device: Device to train on
         epoch: Current epoch number
+        dry_run: If True, stop after a few batches
 
     Returns:
         Average training loss for the epoch
@@ -94,7 +96,12 @@ def train_one_epoch(
                 f"Loss: {loss.item():.4f}"
             )
 
-    avg_loss = running_loss / num_batches
+        # Dry run break
+        if dry_run and batch_idx >= 2:
+            print("Dry run: stopping training after 3 batches")
+            break
+
+    avg_loss = running_loss / (batch_idx + 1)
     return avg_loss
 
 
@@ -104,6 +111,7 @@ def validate(
     criterion: nn.Module,
     device: str,
     class_names: list,
+    dry_run: bool = False,
 ) -> tuple:
     """Validate the model.
 
@@ -113,26 +121,55 @@ def validate(
         criterion: Loss function
         device: Device to validate on
         class_names: List of class names
+        dry_run: If True, stop after a few batches
 
     Returns:
         Tuple of (avg_loss, metrics_dict)
     """
     model.eval()
     running_loss = 0.0
+    num_batches = 0
 
-    # Collect predictions
-    y_true, y_pred, y_probs = collect_predictions(model, dataloader, device)
+    # Collect predictions (custom logic for partial collection)
+    if dry_run:
+        # Mini collection for dry run
+        y_true_list, y_pred_list, y_probs_list = [], [], []
+        with torch.no_grad():
+            for i, (images, labels) in enumerate(dataloader):
+                if i >= 3:
+                    break
+                images, labels = images.to(device), labels.to(device)
+                outputs = model(images)
+                loss = criterion(outputs, labels)
+                running_loss += loss.item()
+                num_batches += 1
 
-    # Calculate loss
-    with torch.no_grad():
-        for images, labels in dataloader:
-            images = images.to(device)
-            labels = labels.to(device)
-            outputs = model(images)
-            loss = criterion(outputs, labels)
-            running_loss += loss.item()
+                probs = torch.softmax(outputs, dim=1)
+                _, preds = torch.max(outputs, 1)
 
-    avg_loss = running_loss / len(dataloader)
+                y_true_list.extend(labels.cpu().numpy())
+                y_pred_list.extend(preds.cpu().numpy())
+                y_probs_list.extend(probs.cpu().numpy())
+
+        avg_loss = running_loss / num_batches
+        import numpy as np
+
+        y_true = np.array(y_true_list)
+        y_pred = np.array(y_pred_list)
+        y_probs = np.array(y_probs_list)
+    else:
+        # Full collection using collect_predictions utility
+        y_true, y_pred, y_probs = collect_predictions(model, dataloader, device)
+
+        # Calculate full loss
+        with torch.no_grad():
+            for images, labels in dataloader:
+                images = images.to(device)
+                labels = labels.to(device)
+                outputs = model(images)
+                loss = criterion(outputs, labels)
+                running_loss += loss.item()
+        avg_loss = running_loss / len(dataloader)
 
     # Calculate metrics
     metrics = calculate_metrics(y_true, y_pred, y_probs, class_names)
@@ -161,6 +198,11 @@ def main():
     parser.add_argument(
         "--resume", type=str, default=None, help="Path to checkpoint to resume from"
     )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Run a quick smoke test (1 epoch, few batches)",
+    )
 
     args = parser.parse_args()
 
@@ -168,6 +210,15 @@ def main():
     print(f"\nLoading config from: {args.config}")
     with open(args.config, "r") as f:
         config = yaml.safe_load(f)
+
+    # Apply dry-run settings
+    if args.dry_run:
+        print("\n" + "!" * 60)
+        print("DRY RUN MODE ENABLED")
+        print("!" * 60)
+        config["training"]["epochs"] = 1
+        config["logging"]["print_every"] = 1
+        config["checkpointing"]["save_every"] = 1
 
     # Override config with command line arguments
     if args.data_root:
@@ -306,13 +357,24 @@ def main():
 
         # Training phase
         train_loss = train_one_epoch(
-            model, train_loader, criterion, optimizer, device, epoch + 1
+            model,
+            train_loader,
+            criterion,
+            optimizer,
+            device,
+            epoch + 1,
+            dry_run=args.dry_run,
         )
         print(f"\nTraining Loss: {train_loss:.4f}")
 
         # Validation phase
         val_loss, val_metrics = validate(
-            model, val_loader, criterion, device, class_names
+            model,
+            val_loader,
+            criterion,
+            device,
+            class_names,
+            dry_run=args.dry_run,
         )
         print(f"Validation Loss: {val_loss:.4f}")
 
