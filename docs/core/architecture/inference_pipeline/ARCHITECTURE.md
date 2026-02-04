@@ -27,9 +27,19 @@ The "Brain" of the inspection. Detects cherries in the image (Segmentation) and 
     *   Scripts: `training/scripts/train.py`, `inspect_model.py`.
     *   **Unnormalized Training**: Models are explicitly trained on unnormalized data to match the production pipeline.
 
+## Model Paths
+
+| Model | Path | Description |
+|-------|------|-------------|
+| **Production (Canonical)** | `cherry_system/cherry_detection/resource/cherry_classification.pt` | Currently deployed model (92.99% accuracy) |
+| **Production (Duplicate)** | `cherry_system/control_node/resource/cherry_classification.pt` | May be loaded due to config bug - see known issues |
+| **Best Training** | `training/experiments/resnet50_augmented_unnormalized/model_best_fixed.pt` | Our best trained model (94.05% accuracy) |
+
+**Note:** When deploying a new model, update the canonical path. The `control_node` copy exists due to a known bug and should eventually be removed.
+
 ## Technical Debt & Known Issues
 *   **Code Duplication**: `ai_detector.py` logic exists in both `cherry_detection` and `control_node`. The `cherry_detection` version is the canonical one, but verify which is actually imported at runtime.
-*   **Model Loading**: There is a known configuration bug where weights might be loaded from `control_node/resource` instead of `cherry_detection/resource`.
+*   **Model Loading**: There is a known configuration bug where weights might be loaded from `control_node/resource` instead of `cherry_detection/resource`. Always verify which model is being loaded at runtime.
 *   **Denormal Values**: ResNet50 on CPU is sensitive to "denormal" float values which cause massive slowdowns. We use `fix_denormals.py` to sanitize weights.
 
 ## Discovery Links

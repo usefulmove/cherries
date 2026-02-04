@@ -135,6 +135,19 @@ for batch in dataloader:
    - Colab Pro: Faster GPUs, longer sessions
    - Monitor runtime to avoid losing progress
 
+5. **"Run All" Configuration Pattern**
+   - Use config cells at the top of notebooks with skip flags
+   - Allows selective experiment execution when using "Run All"
+   - Example pattern:
+   ```python
+   # === EXPERIMENT CONFIGURATION ===
+   DRY_RUN = False           # Smoke test mode
+   SKIP_EXPERIMENT_1 = True  # Skip if inconclusive/slow
+   THRESHOLD_MODEL = 'production'  # Model selection
+   ```
+   - Each experiment cell checks its skip flag before executing
+   - Ensures reproducible "Run All" behavior
+
 ## Troubleshooting
 
 | Issue | Solution |
