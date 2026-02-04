@@ -288,7 +288,32 @@ What was accomplished.
 - ...
 ```
 
-## 12. Agent Guidelines
+## 12. Traina Project: Experiment Tracking & Model Status
+
+**Current Phase:** Model optimization experiments for cherry pit detection
+
+**Key Reference Documents:**
+| Document | Purpose |
+|----------|---------|
+| `docs/reference/MODEL_EXPERIMENTS.md` | Complete log of all model experiments and results |
+| `docs/logs/` | Timestamped session summaries |
+| `docs/stories/STORY-005-Progress-Review-And-Planning.md` | Next session: review + roadmap planning |
+
+**Current Best Models:**
+| Model | Accuracy | Size | Status |
+|-------|----------|------|--------|
+| Production (ResNet50) | 92.99% | 90MB | Baseline |
+| ResNet50 Unnormalized | 94.05% | 90MB | Best (experiment complete) |
+| ResNet18 | 91.92% | 43MB | Complete (speed candidate) |
+
+**Active Infrastructure:**
+- Colab notebook: `training/notebooks/colab_optimization_experiments.ipynb` (skip-flag pattern)
+- Threshold optimization: Ready to run (code in place, production model path documented)
+- Model evaluation: Production model evaluation cell added to notebook
+
+**Next Action:** STORY-005 (start next session with progress review)
+
+## 13. Agent Guidelines
 
 - **Search first.** Exhaust search tools before asking for paths.
 - **Tool Selection.** Skills for vertical workflows, framework docs for APIs, external tools for navigation.

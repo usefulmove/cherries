@@ -139,4 +139,53 @@ if not torch.cuda.is_available():
 
 ---
 
+### [2026-02-04] ML/Workflow: Notebook Configuration with Skip Flags for "Run All"
+
+**Context:**
+Optimization experiments in Colab often skip some experiments while running others (e.g., skip inconclusive Exp 1, run Exp 3). The notebook was failing with TypeError when trying to format skipped experiment results.
+
+**What We Did:**
+Implemented a configuration cell pattern with explicit skip flags:
+```python
+DRY_RUN = False                    # Smoke test mode
+SKIP_EXPERIMENT_1 = True           # Skip inconclusive experiments
+THRESHOLD_MODEL = 'production'     # Model selection for Exp 2
+```
+Each experiment cell checks its skip flag before executing. Fixed final summary to use `is not None` instead of checking `in locals()`.
+
+**Outcome:**
+Enables reliable "Run All" behavior where some experiments are cleanly skipped and won't cause downstream errors. Improves robustness of complex notebooks.
+
+**Key Takeaway:**
+When a notebook has conditional experiments, use explicit config flags and `is not None` checks rather than relying on variable presence detection. This survives refactoring and skipped cells better.
+
+**References:**
+- [Colab Optimization Experiments](../../training/notebooks/colab_optimization_experiments.ipynb)
+- [Training on Colab Skill](../skills/training-colab/SKILL.md)
+
+---
+
+### [2026-02-04] ML/Training: ResNet18 Achieves 1% Accuracy Drop for 2x Model Compression
+
+**Context:**
+Hypothesis: ResNet18 (11.7M params) can match ResNet50 (25.6M params) accuracy with faster inference.
+
+**What We Did:**
+Trained ResNet18 with identical augmentation + unnormalized setup as ResNet50. Best epoch: 6 (91.92% accuracy).
+
+**Outcome:**
+- **ResNet18:** 91.92% accuracy, 43MB model, estimated 8-10ms latency (40-50% faster)
+- **ResNet50 (our best):** 94.05% accuracy, 90MB model, ~17ms latency
+- **Production (ResNet50):** 92.99% accuracy, 90MB model, ~16ms latency
+
+**Key Takeaway:**
+ResNet18 is acceptable for latency-constrained environments if 1% accuracy drop is tolerable. However, pit recall (89.58% vs ~93%) is lower—important for food safety. Decision hinges on priorities (speed vs. accuracy).
+
+**References:**
+- Epoch 6 metrics: 92.00% precision, 91.76% recall, 91.86% F1
+- [Model Experiments Log](./MODEL_EXPERIMENTS.md) (Experiment Set 3)
+- `training/experiments/resnet18_augmented_unnormalized/metrics.json`
+
+---
+
 *Use the format above for new lessons. Keep entries concise and actionable. Focus on transferable insights rather than situational details.*

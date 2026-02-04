@@ -79,20 +79,61 @@ Do not pursue differential LR approach further. The evidence suggests training a
 
 ---
 
-## Experiment Set 3: ResNet18 Backbone (Pending)
+## Experiment Set 3: ResNet18 Backbone
 
-**Status:** Not yet run. ResNet18 experiment did not complete due to Colab timeout (CPU training was too slow).
+**Date:** 2026-02-04
+**Status:** Complete (GPU)
 
-### Planned Configuration
+### Hypothesis
+ResNet18 (11.7M params) can achieve similar accuracy to ResNet50 (25.6M params) with faster inference, making it suitable for deployment in latency-constrained environments.
+
+### Configuration
 | Parameter | Value |
 |-----------|-------|
 | Architecture | ResNet18 (11.7M params vs 25.6M for ResNet50) |
 | All layers trained | Yes |
 | Augmentation | Enabled |
-| Normalization | Disabled |
-| Expected Latency | ~8-10ms (vs 16.7ms for ResNet50) |
+| Normalization | Disabled (matches production) |
+| Epochs | 30 |
+| Device | Tesla T4 GPU |
+| Best Epoch | 6 |
 
-### Next Steps
-1. Re-run on Colab with **GPU runtime enabled**
-2. Compare accuracy vs ResNet50
-3. If accuracy is within 1-2% of ResNet50, consider for production (faster inference)
+### Results
+
+| Model | Accuracy | Precision | Recall | F1 Score | Parameters | Model Size |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **Production (Baseline)** | 92.99% | - | - | 0.9293 | 25.6M | ~90MB |
+| **ResNet50 Best** | 94.05% | - | - | 0.9397 | 25.6M | ~90MB |
+| **ResNet18 (Exp 3)** | **91.92%** | 92.00% | 91.76% | 0.9186 | 11.7M | ~43MB |
+
+### Per-Class Performance (ResNet18, Epoch 6)
+
+| Class | Precision | Recall | F1 |
+|-------|-----------|--------|-----|
+| cherry_clean | 91.31% | 93.94% | 92.61% |
+| cherry_pit | 92.69% | 89.58% | 91.11% |
+
+### Training Curve Highlights
+- Epoch 1: 87.19% (starting)
+- Epoch 2: 89.72%
+- Epoch 4: 90.13%
+- Epoch 5: 90.86%
+- **Epoch 6: 91.92%** (best)
+- Epoch 7-30: Fluctuates 90-91.5% (slight overfitting)
+
+### Analysis
+*   **Accuracy trade-off:** ResNet18 achieves 91.92% vs 92.99% (production) - a 1.07% drop.
+*   **Model size:** 43MB vs 90MB (2.1x smaller)
+*   **Expected latency:** ~8-10ms vs ~16ms (estimated 40-50% faster based on FLOPs)
+*   **Pit recall:** 89.58% - lower than clean recall (93.94%). For food safety, may want threshold adjustment.
+
+### Recommendation
+**Acceptable for deployment** if latency is a priority. The 1% accuracy drop is acceptable given:
+- 2x smaller model (easier OTA updates)
+- Faster inference (higher throughput or lower hardware requirements)
+- Can be combined with threshold optimization to improve pit recall
+
+### Artifacts
+- Model: `training/experiments/resnet18_augmented_unnormalized/model_best.pt`
+- Metrics: `training/experiments/resnet18_augmented_unnormalized/metrics.json`
+- Config: `training/experiments/resnet18_augmented_unnormalized/config.yaml`
