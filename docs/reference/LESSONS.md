@@ -108,4 +108,35 @@ Never re-implement core logic in notebooks if possible. If custom logic is neede
 
 ---
 
+### [2026-02-04] ML/Training: Always Verify GPU Availability Before Training
+
+**Context:**
+Ran optimization experiments on Google Colab but the runtime was configured for CPU instead of GPU. Training took ~12 minutes per epoch (vs ~30 seconds with GPU), and the ResNet18 experiment never completed due to time constraints. The differential LR experiment completed but with potentially non-representative results.
+
+**What We Did:**
+1. Identified the issue from notebook output showing `CUDA available: False` and ~710s epoch times
+2. Added a hard-stop GPU verification check to the training notebook
+3. Documented the experiment as "inconclusive" in MODEL_EXPERIMENTS.md
+
+**Outcome:**
+~6 hours of CPU compute time produced inconclusive results. The ResNet18 experiment needs to be re-run with GPU enabled.
+
+**Key Takeaway:**
+Always verify GPU availability at the start of training notebooks. Add a hard-stop check that raises an error if CUDA is unavailable when GPU training is expected. The few seconds spent checking saves hours of wasted compute.
+
+**Implementation:**
+```python
+if not torch.cuda.is_available():
+    raise RuntimeError(
+        "GPU required for training. "
+        "Go to Runtime -> Change runtime type -> GPU"
+    )
+```
+
+**References:**
+- [Model Experiments Log](./MODEL_EXPERIMENTS.md)
+- [Colab Optimization Experiments](../../training/notebooks/colab_optimization_experiments.ipynb)
+
+---
+
 *Use the format above for new lessons. Keep entries concise and actionable. Focus on transferable insights rather than situational details.*
