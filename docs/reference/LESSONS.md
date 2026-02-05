@@ -188,4 +188,76 @@ ResNet18 is acceptable for latency-constrained environments if 1% accuracy drop 
 
 ---
 
+### [2026-02-05] Documentation/Workflow: Consolidate Questions Before Critical Meetings
+
+**Context:**
+Preparing for a handoff meeting with the original engineer and Russ. Had accumulated 76 questions across multiple documents (classification-questions.md, developer-questions.md, possible-improvements.md), but this was too many for a productive meeting and had significant overlap.
+
+**What We Did:**
+1. Audited all existing question documents for duplicates and gaps
+2. Consolidated into a single focused discussion guide (open-questions-20260205.md)
+3. Narrowed from 76 questions to ~20 prioritized questions across 5 key topics
+4. Verified "maybe" category handling through code review before the meeting
+5. Archived redundant documents to docs/reference/completed/
+
+**Outcome:**
+Created a focused 130-line discussion guide with verified findings, ready for the 2pm handoff meeting. Eliminated duplicate questions and provided concrete context for each discussion topic.
+
+**Key Takeaway:**
+Before critical meetings, consolidate scattered questions into a single prioritized document. Remove duplicates, verify assumptions through code/docs review when possible, and focus on actionable questions that drive decisions. Archive rather than delete old versions to preserve history.
+
+**Process:**
+1. Gather all existing question lists
+2. Identify duplicates and consolidate
+3. Prioritize into Must Ask / Should Ask / Can Figure Out Later
+4. Verify key technical assumptions before asking
+5. Create focused discussion guide with context
+6. Archive redundant documents
+
+**References:**
+- [Handoff Meeting Prep](../logs/2026-02-05-handoff-meeting-prep.md)
+- [Discussion Guide](./open-questions-20260205.md)
+- [Completed Questions](../reference/completed/)
+
+---
+
+### [2026-02-05] Architecture/Documentation: Document Operational Details in Architecture Guides
+
+**Context:**
+Discovered through code review that the "maybe" category (label 5) isn't just a classification output—it's a critical safety feature that triggers manual worker review via yellow projection highlights. This operational workflow wasn't captured in the architecture documentation, only the classification logic was mentioned.
+
+**What We Did:**
+1. Updated [Inference Pipeline Architecture](../core/architecture/inference_pipeline/ARCHITECTURE.md) with comprehensive classification categories table including:
+   - All four labels (1=clean, 2=pit, 3=side, 5=maybe)
+   - Threshold logic (≥0.75 pit, ≥0.5 maybe/clean)
+   - Color coding for visualization
+   - Safety feature explanation (manual review pathway)
+   
+2. Updated [Tracking & Orchestration Architecture](../core/architecture/tracking_orchestration/ARCHITECTURE.md) with:
+   - Color coding table for projection system
+   - Specific code references (helper.cpp lines 66-69, 115-134)
+   - Safety workflow description
+   - Cross-reference to inference pipeline docs
+
+3. Added bidirectional discovery links between architecture documents
+
+**Outcome:**
+Architecture documentation now captures both the technical implementation AND the operational workflow. Future developers can understand not just "what" the categories are, but "why" they matter for system safety and "how" they're visualized for worker review.
+
+**Key Takeaway:**
+Architecture documentation should capture operational workflows, not just technical implementation. When a system feature has human-facing consequences (like visual highlights for manual review), document the full workflow across all relevant architecture layers. Use bidirectional discovery links to help agents navigate between related components.
+
+**Implementation Pattern:**
+- Technical details → Inference Pipeline layer
+- Visualization/UX details → Tracking & Orchestration layer  
+- Cross-reference both with discovery links
+- Include specific code locations for agentic discovery
+
+**References:**
+- [Inference Pipeline](../core/architecture/inference_pipeline/ARCHITECTURE.md)
+- [Tracking & Orchestration](../core/architecture/tracking_orchestration/ARCHITECTURE.md)
+- Code: `ai_detector.py:246, 376-383` (thresholds), `helper.cpp:66-69, 115-134` (visualization)
+
+---
+
 *Use the format above for new lessons. Keep entries concise and actionable. Focus on transferable insights rather than situational details.*

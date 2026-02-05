@@ -26,7 +26,22 @@ The central nervous system. It coordinates the timing of all other layers, maint
 
 ### 3. Visualization (`cherry_system/tracking_projector/`)
 *   **Tech**: C++ / Qt / OpenGL.
-*   **Function**: Projects colored circles (Green=Clean, Red=Pit) directly onto the physical cherries on the belt for real-time human feedback.
+*   **Function**: Projects colored circles directly onto the physical cherries on the belt for real-time human feedback and manual review.
+
+**Color Coding by Classification:**
+
+| Classification Label | Color | Purpose |
+|:---------------------|:------|:--------|
+| 1 (Clean) | **Green** | Pass—cherry proceeds to good bin |
+| 2 (Pit) | **Red** | Fail—cherry is rejected or sorted separately |
+| 3 (Side) | **Cyan** | Edge case—cherry at image boundary |
+| 5 (Maybe) | **Yellow** | **Manual review required**—worker inspects uncertain prediction |
+
+**Key Implementation:**
+- **Brush definitions** (`helper.cpp:66-69`): `circleBrush_maybe = QBrush(Qt::yellow)`
+- **Rendering** (`helper.cpp:115-134`): Type 5 cherries rendered with yellow brush
+- **Safety Workflow**: Yellow highlights enable human oversight of model uncertainty, preventing automatic misclassification of ambiguous cases
+
 *   **Sync**: Subscribes to the tracker state to keep projections locked to the moving fruit.
 
 ## Design Decisions
@@ -35,3 +50,5 @@ The central nervous system. It coordinates the timing of all other layers, maint
 ## Discovery Links
 *   **Code**: `src/cherry_system/control_node/`
 *   **Visualization Code**: `src/cherry_system/tracking_projector/`
+*   **Classification Categories**: See [Inference Pipeline](../inference_pipeline/ARCHITECTURE.md) for threshold logic and category definitions
+*   **Projection Rendering**: `cherry_system/tracking_projector/src/helper.cpp:66-69` (color brushes), `115-134` (rendering logic)
