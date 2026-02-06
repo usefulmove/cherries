@@ -7,64 +7,166 @@ impact_area: Accuracy, Classification, Training
 # Inference Pipeline Layer
 
 ## Responsibility
-The "Brain" of the inspection. Detects cherries in the image (Segmentation) and determines if they contain pits (Classification).
 
-## Key Components
+The "Brain" of the inspection. Detects cherries in the image (Segmentation), determines if they contain pits (Classification), and identifies stem locations (Stem Detection).
 
-### 1. Detection Service (`cherry_system/cherry_detection/`)
-*   **Node**: `cherry_detection`
-*   **Service**: `DetectCherries`
-*   **Pipeline**:
-    1.  **Segmentation**: **Mask R-CNN** identifies cherry ROIs (Regions of Interest).
-    2.  **Preprocessing**: Crops and resizes cherries. **Crucial:** Does *not* normalize pixel values (uses raw 0-255) to save CPU cycles.
-    3.  **Classification**: **ResNet50** (or MobileNet/EfficientNet) classifies each crop into one of four categories based on confidence thresholds.
+## Architecture Overview
 
-#### Classification Categories
+The current production system uses a **3-model pipeline** (algorithm v6/hdr_v1) consisting of:
 
-The model outputs probabilities for two classes (clean vs pit), which are mapped to four operational categories:
+1. **Segmentation Model** (Mask R-CNN): Detects cherry locations and generates masks
+2. **Classification Model** (ResNet50): Classifies cherries into quality categories
+3. **Stem Detection Model** (Faster R-CNN): Detects stem locations in the color image
 
-| Label | Category | Threshold | Description | Visualization |
-|:------|:---------|:----------|:------------|:--------------|
-| 1 | **Clean** | clean prob ≥ 0.5 | Confidently no pit | Green bounding box / circle |
-| 2 | **Pit** | pit prob ≥ 0.75 | Confidently has pit | Red bounding box / circle |
-| 3 | **Side** | edge detection | Cherry at image edge | Cyan bounding box / circle |
-| 5 | **Maybe** | 0.5 ≤ pit prob < 0.75 | Uncertain—requires manual review | **Yellow bounding box / circle** |
+## Current Production Pipeline (hdr_v1 / v6)
+
+### Model Configuration
+
+| Model | Architecture | Input | Output | Classes | File |
+|-------|-------------|-------|--------|---------|------|
+| **Segmentation** | Mask R-CNN ResNet50 FPN | Grayscale (500×2464) | Masks, boxes, scores | 2 (bg, cherry) | `seg_model_red_v1.pt` |
+| **Classification** | ResNet50 | 128×128 crops | Quality scores | **3** (clean, maybe, pit) | `classification-2_26_2025-iter5.pt` |
+| **Stem Detection** | Faster R-CNN ResNet50 FPN v2 | Color RGB (500×2464) | Stem bounding boxes | 2 (bg, stem) | `stem_model_10_5_2024.pt` |
+
+### Detection Flow
+
+```
+┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
+│  Grayscale Image│────▶│  Mask R-CNN      │────▶│ Cherry ROIs     │
+│  (bot1/bot2/top2│     │  Segmentation    │     │ + Masks         │
+└─────────────────┘     └──────────────────┘     └─────────────────┘
+         │                                                  │
+         │                                                  ▼
+         │                                         ┌──────────────────┐
+         │                                         │ Crop & Resize    │
+         │                                         │ 128×128 patches  │
+         │                                         └──────────────────┘
+         │                                                  │
+         ▼                                                  ▼
+┌─────────────────┐     ┌──────────────────┐     ┌──────────────────┐
+│  Color Image    │────▶│ Faster R-CNN     │     │ ResNet50         │
+│  (RGB aligned)  │     │ Stem Detection   │     │ Classification   │
+└─────────────────┘     └──────────────────┘     └──────────────────┘
+         │                                                  │
+         ▼                                                  ▼
+┌─────────────────┐                              ┌──────────────────┐
+│ Stem Boxes      │                              │ Class Labels     │
+│ (Type 6)        │                              │ (1,2,3,5)        │
+└─────────────────┘                              └──────────────────┘
+                                                          │
+                                                          ▼
+                                                ┌──────────────────┐
+                                                │ Final Detections │
+                                                │ + Stem Markers   │
+                                                └──────────────────┘
+```
+
+## Classification Categories
+
+The classifier outputs probabilities for **three classes**, which are mapped to operational categories:
+
+| Label | Category | Model Output | Threshold | Description | Visualization |
+|:------|:---------|:-------------|:----------|:------------|:--------------|
+| 1 | **Clean** | Class 0 | clean prob ≥ 0.5 | Confidently no pit | Lime green bounding box |
+| 2 | **Pit** | Class 2 | pit class detected | Confidently has pit | Red bounding box |
+| 3 | **Side** | Position-based | Edge detection | Cherry at image edge | Cyan bounding box |
+| 5 | **Maybe** | Class 1 | maybe class detected | Uncertain—requires manual review | **Yellow bounding box** |
+| **6** | **Stem** | Stem model | Score ≥ 0.75 | Stem detected | **Black bounding box** |
+
+**Evolution Note:** Earlier versions (v1-v5) used a 2-class classifier (clean/pit) with threshold-based maybe detection. The current 3-class classifier (v6+) uses explicit class predictions for clean/maybe/pit.
 
 **Key Implementation Details:**
-- **Locations array** (`ai_detector.py:246`): `['none', 'cherry_clean', 'cherry_pit', 'side', 'top/bot', 'maybe']`
-- **Threshold logic** (`ai_detector.py:376-383`): 
-  - `pit_mask = probs[:, 1].ge(.75)` → label 2
-  - `maybe_mask = probs[:, 1].ge(.5)` → label 5 (if not pit)
-  - `clean_mask = probs[:, 0].ge(.5)` → label 1
-- **Safety Feature**: The "Maybe" category (label 5) creates a manual review pathway—uncertain predictions are highlighted in yellow on the belt projection for worker inspection rather than being automatically sorted.
+- **Locations array** (`ai_detector3.py:346`): `['none', 'cherry_clean', 'cherry_pit', 'side', 'top/bot', 'maybe']`
+- **Classification logic** (`ai_detector3.py:616-625`): Uses `classes.eq()` for 3-class decisions
+- **Stem integration** (`detector_node.py:473-485`): Stems assigned `type = 6` in Cherry messages
 
-### 2. Training Infrastructure (`training/`)
-*   **Location**: Root `training/` directory.
-*   **Workflow**:
-    *   Data managed on Google Drive.
-    *   Training runs on Google Colab Pro (due to GPU requirements).
-    *   Scripts: `training/scripts/train.py`, `inspect_model.py`.
-    *   **Unnormalized Training**: Models are explicitly trained on unnormalized data to match the production pipeline.
+## Algorithm Versions
+
+The system supports 8 algorithm configurations via dynamic parameter switching:
+
+| Version | Algorithm Name | Detector Class | Models | Stem Support | Status |
+|---------|---------------|----------------|--------|--------------|--------|
+| v1 | fasterRCNN-Mask_ResNet50_V1 | ai_detector_class | 2-model | No | Legacy |
+| v2 | fasterRCNN-NoMask_ResNet50_6-12-2023 | ai_detector_class_2 | 2-model | No | Legacy |
+| v3 | newlight-mask-12-15-2023 | ai_detector_class | 2-model | No | Legacy |
+| v4 | newlights-nomask-12-15-2023 | ai_detector_class_2 | 2-model | No | Legacy |
+| v5 | NMS-nomask-1-3-2024 | ai_detector_class_2 | 2-model | No | Legacy |
+| **v6** | **hdr_v1** | **ai_detector_class_3** | **3-model** | **Yes** | **DEFAULT** |
+| v7 | hdr_v2 | ai_detector_class_3 | 3-model, no stem | Partial | Alternative |
+| v8 | vote_v1 | ai_detector_class_4 | Multi-model ensemble | No | Experimental |
+
+**Current Default:** `hdr_v1` (v6) is loaded on startup (`detector_node.py:75`).
 
 ## Model Paths
 
+### Production Models (Current)
+
 | Model | Path | Description |
 |-------|------|-------------|
-| **Production (Canonical)** | `cherry_system/cherry_detection/resource/cherry_classification.pt` | Currently deployed model (92.99% accuracy) |
-| **Production (Duplicate)** | `cherry_system/control_node/resource/cherry_classification.pt` | May be loaded due to config bug - see known issues |
-| **Best Training** | `training/experiments/resnet50_augmented_unnormalized/model_best_fixed.pt` | Our best trained model (94.05% accuracy) |
+| **Segmentation** | `cherry_detection/resource/seg_model_red_v1.pt` | Cherry detection (Mask R-CNN) |
+| **Classification** | `cherry_detection/resource/classification-2_26_2025-iter5.pt` | 3-class quality classifier |
+| **Stem Detection** | `cherry_detection/resource/stem_model_10_5_2024.pt` | Stem location detector (166 MB) |
 
-**Note:** When deploying a new model, update the canonical path. The `control_node` copy exists due to a known bug and should eventually be removed.
+### Legacy Models
+
+| Model | Path | Description |
+|-------|------|-------------|
+| **Original Classification** | `cherry_detection/resource/cherry_classification.pt` | 2-class baseline (92.99% accuracy) |
+| **Best Training** | `training/experiments/resnet50_augmented_unnormalized/model_best_fixed.pt` | 94.05% accuracy |
+
+**Note:** The original `cherry_classification.pt` (2-class) remains for backward compatibility with v1-v5 algorithms.
+
+## Stem Detection Details
+
+See [STEM_DETECTION.md](./STEM_DETECTION.md) for comprehensive stem detection documentation.
+
+### Quick Overview
+
+- **Architecture:** Faster R-CNN ResNet50 FPN v2
+- **Input:** Aligned color image (3-channel RGB)
+- **Output:** Stem bounding boxes with confidence scores
+- **Threshold:** Score ≥ 0.75 for detection
+- **Spatial Filter:** Focus on center region (not belt edges)
+- **Integration:** Stems marked as Type 6 in Cherry messages
+- **Visualization:** Black bounding boxes on processed images
+
+### Current Status
+
+The stem model is **loaded and executed** in production but its practical sorting impact is **under investigation**. See [Open Questions: Stem Detection](../../reference/open-questions-stem-detection.md).
+
+## Training Infrastructure
+
+*   **Location:** Root `training/` directory.
+*   **Workflow:**
+    *   Data managed on Google Drive.
+    *   Training runs on Google Colab Pro (due to GPU requirements).
+    *   Scripts: `training/scripts/train.py`, `inspect_model.py`.
+    *   **Unnormalized Training:** Models are explicitly trained on unnormalized data (0-255 range) to match the production pipeline.
+
+### Training Data
+
+See [Training Data Reference](../../reference/training-data.md) for dataset details.
+
+**Key Datasets:**
+- Classification: GitHub repo + collected images
+- Segmentation: COCO/VOC annotations
+- **Stems:** `/media/dedmonds/Extreme SSD/traina cherry line/Pictures/hdr/20240923 stems/` (~570 samples)
 
 ## Technical Debt & Known Issues
-*   **Code Duplication**: `ai_detector.py` logic exists in both `cherry_detection` and `control_node`. The `cherry_detection` version is the canonical one, but verify which is actually imported at runtime.
-*   **Model Loading**: There is a known configuration bug where weights might be loaded from `control_node/resource` instead of `cherry_detection/resource`. Always verify which model is being loaded at runtime.
-*   **Denormal Values**: ResNet50 on CPU is sensitive to "denormal" float values which cause massive slowdowns. We use `fix_denormals.py` to sanitize weights.
+
+*   **Code Duplication:** Multiple `ai_detector` versions (ai_detector.py through ai_detector4.py) exist. The `ai_detector3.py` version is canonical for v6+ operations.
+*   **Model Loading:** There is a known configuration bug where weights might be loaded from `control_node/resource` instead of `cherry_detection/resource`. Always verify which model is being loaded at runtime.
+*   **Denormal Values:** ResNet50 on CPU is sensitive to "denormal" float values which cause massive slowdowns. We use `fix_denormals.py` to sanitize weights.
+*   **Stem Detection Purpose:** The practical use of stem detections in the sorting logic is unclear. See [Open Questions: Stem Detection](../../reference/open-questions-stem-detection.md).
 
 ## Discovery Links
-*   **Code**: `src/cherry_system/cherry_detection/`
-*   **Training Code**: `training/`
-*   **Analysis**: [ResNet50 Analysis](./RESNET50_ANALYSIS.md)
-*   **Skill**: `../../skills/benchmark-latency/`
-*   **Visualization**: See [Tracking & Orchestration](../tracking_orchestration/ARCHITECTURE.md) for projection system details
-*   **Category Handling**: `cherry_system/cherry_detection/cherry_detection/ai_detector.py:246, 376-383` (classification logic)
+
+*   **Code:** `src/cherry_system/cherry_detection/`
+*   **Backup Code:** `/media/dedmonds/Extreme SSD/traina cherry line/threading_ws/src/cherry_detection/`
+*   **Training Code:** `training/`
+*   **Analysis:** [ResNet50 Analysis](./RESNET50_ANALYSIS.md)
+*   **Stem Detection:** [STEM_DETECTION.md](./STEM_DETECTION.md)
+*   **Skill:** `../../skills/benchmark-latency/`
+*   **Visualization:** See [Tracking & Orchestration](../tracking_orchestration/ARCHITECTURE.md) for projection system details
+*   **Category Handling:** `cherry_system/cherry_detection/cherry_detection/ai_detector3.py:346, 616-625` (3-class classification logic)
+*   **Stem Integration:** `detector_node.py:473-485` (stem message handling)

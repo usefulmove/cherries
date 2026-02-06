@@ -38,7 +38,6 @@ Explored multiple optimization strategies to improve classification accuracy:
 - **Evaluation:** Working pipeline to test models against validation data
 - **Training:** Colab notebook with skip-flag pattern for systematic experiments
 - **Optimization:** Scripts ready for threshold tuning and latency benchmarking
-- **Models:** 94.05% ResNet50 ready for deployment consideration
 
 ---
 
