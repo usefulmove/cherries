@@ -1,0 +1,3 @@
+sensor_msgs/Image image						# image to save
+---
+int64 result_code         # the array of cherries that was detected

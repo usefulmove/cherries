@@ -1,0 +1,6 @@
+sensor_msgs/Image image						# color image with overhead image in red channel and backlit image in blue channel
+int64 encoder_count
+---
+sensor_msgs/Image keypoint_image			# color image with keypoint overlay
+cherry_interfaces/Cherry[] cherries         # the array of cherries that was detected
+int64 encoder_count

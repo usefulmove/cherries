@@ -1,0 +1,8 @@
+int64 frame_id
+bool top_light
+bool bot_light
+---
+int64 status
+int64 frame_id  # echo data back
+bool top_light
+bool bot_light

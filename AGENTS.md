@@ -288,7 +288,36 @@ What was accomplished.
 - ...
 ```
 
-## 12. Traina Project: Experiment Tracking & Model Status
+## 12. Traina Project: System Architecture
+
+### Production System: threading_ws
+
+**Location:** `threading_ws/` - Complete ROS2 workspace (16 packages)
+
+**Status:** Production-ready, self-contained, copied from backup 2025-02-05
+
+**Key Capabilities:**
+- HDR multi-layer imaging (ImageSetHdr)
+- 3-model AI pipeline (segmentation + classification + stem detection)
+- 3-class classification (clean/maybe/pit)
+- 8 selectable detection algorithms
+- C++ action-based orchestration (composite)
+- PLC-based I/O (plc_eip)
+
+**Model Files:** ~1.1GB in `threading_ws/src/cherry_detection/resource/` (excluded from git)
+
+**Architecture Documentation:**
+- [threading_ws INDEX](docs/core/architecture/threading_ws/INDEX.md) - System overview
+- [cherry_interfaces](docs/core/architecture/threading_ws/cherry_interfaces/ARCHITECTURE.md) - Expanded interfaces
+- [Migration Guide](docs/reference/MIGRATION_cherry_system_to_threading_ws.md) - cherry_system → threading_ws
+
+### Legacy System: cherry_system (Archived)
+
+**Location:** `cherry_system/` - Retained for reference
+
+**Status:** Legacy, 2-model pipeline, simpler interfaces
+
+### Experiment Tracking
 
 **Current Phase:** Model optimization experiments for cherry pit detection
 
@@ -296,20 +325,23 @@ What was accomplished.
 | Document | Purpose |
 |----------|---------|
 | `docs/reference/MODEL_EXPERIMENTS.md` | Complete log of all model experiments and results |
+| `docs/reference/MIGRATION_cherry_system_to_threading_ws.md` | System migration guide |
 | `docs/logs/` | Timestamped session summaries |
 | `docs/stories/STORY-005-Progress-Review-And-Planning.md` | Next session: review + roadmap planning |
 
 **Current Best Models:**
-| Model | Accuracy | Size | Status |
-|-------|----------|------|--------|
-| Production (ResNet50) | 92.99% | 90MB | Baseline |
-| ResNet50 Unnormalized | 94.05% | 90MB | Best (experiment complete) |
-| ResNet18 | 91.92% | 43MB | Complete (speed candidate) |
+| Model | Accuracy | Size | Status | System |
+|-------|----------|------|--------|--------|
+| Production (ResNet50) | 92.99% | 90MB | Baseline | cherry_system |
+| ResNet50 Unnormalized | 94.05% | 90MB | Best (experiment complete) | cherry_system |
+| ResNet18 | 91.92% | 43MB | Complete (speed candidate) | cherry_system |
+| **classification-2_26_2025-iter5.pt** | Unknown | 91MB | **Production** | **threading_ws** |
 
 **Active Infrastructure:**
 - Colab notebook: `training/notebooks/colab_optimization_experiments.ipynb` (skip-flag pattern)
 - Threshold optimization: Ready to run (code in place, production model path documented)
 - Model evaluation: Production model evaluation cell added to notebook
+- **threading_ws:** Complete production workspace with 3-model pipeline
 
 **Next Action:** STORY-005 (start next session with progress review)
 

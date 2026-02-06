@@ -1,0 +1,4 @@
+---
+int64 encoder_count
+int64 encoder_mm
+int32 status

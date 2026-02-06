@@ -1,0 +1,9 @@
+int64 frame_id
+---
+int64 frame_id
+int64 status
+cherry_interfaces/Cherry[] cherries         # the array of cherries that was detected
+---
+int64 frame_id
+int64 status
+cherry_interfaces/Cherry[] cherries         # the array of cherries that was detected

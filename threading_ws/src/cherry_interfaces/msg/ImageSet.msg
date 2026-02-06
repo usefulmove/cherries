@@ -1,0 +1,7 @@
+uint64 frame_id
+sensor_msgs/Image image_top				# Image data for top image
+sensor_msgs/Image image_bot			# Image data fro bottom image
+int64 count_top							# encoder count at time of acquisition start
+int64 count_bot						# encoder count at time of acquisition start
+int64 mm_top							# encoder count at time of acquisition start
+int64 mm_bot						# encoder count at time of acquisition start

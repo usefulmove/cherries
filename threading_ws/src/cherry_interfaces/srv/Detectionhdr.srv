@@ -1,0 +1,23 @@
+uint64 frame_id
+sensor_msgs/Image image_top1				# Image data for top image
+sensor_msgs/Image image_top2				# Image data for top image
+sensor_msgs/Image image_top3				# Image data for top image
+sensor_msgs/Image image_bot1			# Image data fro bottom image
+sensor_msgs/Image image_bot2			# Image data fro bottom image
+sensor_msgs/Image image_bot3			# Image data fro bottom image
+int64 count_top1							# encoder count at time of acquisition start
+int64 count_top2							# encoder count at time of acquisition start
+int64 count_top3							# encoder count at time of acquisition start
+int64 count_bot1						# encoder count at time of acquisition start
+int64 count_bot2						# encoder count at time of acquisition start
+int64 count_bot3						# encoder count at time of acquisition f
+int64 mm_top1							# encoder count at time of acquisition start
+int64 mm_top2							# encoder count at time of acquisition start
+int64 mm_top3							# encoder count at time of acquisition start
+int64 mm_bot1						# encoder count at time of acquisition start
+int64 mm_bot2						# encoder count at time of acquisition start
+int64 mm_bot3						# encoder count at time of acquisition start
+---
+sensor_msgs/Image keypoint_image			# color image with keypoint overlay
+cherry_interfaces/Cherry[] cherries         # the array of cherries that was detected
+int64 encoder_count

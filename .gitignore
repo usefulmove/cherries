@@ -54,3 +54,16 @@ outputs/
 
 # Dataset (clone separately, don't commit)
 cherry_classification/
+
+# CIPster build artifacts (inside plc_eip)
+threading_ws/src/plc_eip/include/CIPster/CMakeCache.txt
+threading_ws/src/plc_eip/include/CIPster/CMakeFiles/
+threading_ws/src/plc_eip/include/CIPster/Makefile
+threading_ws/src/plc_eip/include/CIPster/cmake_install.cmake
+threading_ws/src/plc_eip/include/CIPster/build-CIPster/
+
+# Rosbag files (test data) - exceed GitHub 100MB limit
+*.db3
+
+# VimbaX SDK - vendor library (121MB, install separately)
+threading_ws/src/cameras/include/VimbaX_2023-4/

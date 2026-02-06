@@ -1,0 +1,5 @@
+---
+int64 frame_id
+int64[] encoder_count
+bool[] top_light
+bool[] bot_light

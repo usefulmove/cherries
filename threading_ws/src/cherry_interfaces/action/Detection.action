@@ -1,0 +1,5 @@
+sensor_msgs/Image image						# color image with overhead image in red channel and backlit image in blue channel
+---
+cherry_interfaces/Cherry[] cherries         # partial list of detected cherries
+---
+cherry_interfaces/Cherry[] cherries         # the array of cherries that was detected

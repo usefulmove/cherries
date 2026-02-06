@@ -1,0 +1,4 @@
+int64 reference_mm                             # reference position used to provide the appropriate offsets  for the cherries 
+---
+cherry_interfaces/CherryArray cherry_array      # the array of cherries in the buffer
+int64 model_id

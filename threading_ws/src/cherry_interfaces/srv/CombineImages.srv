@@ -1,0 +1,4 @@
+cherry_interfaces/ImageSet image_set		# data with images to combine - we could use this instead of spelling evertyyhin out below.
+---
+int64 frame_id
+sensor_msgs/Image image						# result image

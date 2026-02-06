@@ -1,0 +1,6 @@
+bool top_light            # This IO point sets the top lights on/off
+bool bot_light           # This IO point sets the bottom lights on/off
+---
+int32 status
+bool top_light             # Status of the top light IO
+bool bot_light            # Status of the back light IO
