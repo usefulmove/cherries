@@ -334,4 +334,44 @@ Foundation models often have stricter constraints than standard CNNs (ResNet/Eff
 
 ---
 
+---
+
+### [2026-02-06] ML/Training: FCMAE Pre-training Superior for Defect Detection, But Latency Trumps Accuracy
+
+**Context:**
+Ran Phase 2 SOTA experiments comparing ConvNeXt V2 (FCMAE pre-training), EfficientNet-B2, and DINOv2 foundation models. ConvNeXt V2 achieved 94.21% accuracy (best ever), beating our ResNet50 baseline (94.05%) by 0.16%.
+
+**What We Did:**
+Measured inference latency on production-equivalent CPU hardware. Results:
+- ConvNeXt V2-Tiny: **58ms** (measured locally, 100 runs)
+- ResNet50 (current best): **16ms** (documented baseline)
+- Target requirement: **<30ms**
+
+**Outcome:**
+ConvNeXt V2 is **3.6x slower** than ResNet50. The 0.16% accuracy gain doesn't justify the latency cost for real-time conveyor belt inspection. Model not suitable for deployment despite being most accurate.
+
+**Key Findings:**
+1. **FCMAE pre-training > ImageNet** for cherry defect detection (94.21% vs 94.05%)
+2. **Label smoothing harmful** for 2-class problems (collapsed to 53.83% on ConvNeXt)
+3. **Foundation models need fine-tuning** - DINOv2 linear probe only 83.93%
+4. **Modern architectures have latency penalties** - 28M params vs 25M but 3.6x slower
+
+**Decision Framework:**
+| ConvNeXt V2 Latency | Action |
+|---------------------|--------|
+| <20ms | Deploy immediately |
+| 20-30ms | Deploy with optimization (quantization, pruning) |
+| >30ms | Stick with ResNet50 family, pursue SE-ResNet50 or optimization |
+
+**Key Takeaway:**
+Always measure latency on target hardware before celebrating accuracy gains. Modern architectures (ConvNeXt, ViT) often have significant inference penalties despite similar parameter counts. For real-time systems, latency constraints can override accuracy improvements <1%.
+
+**References:**
+- [Session Log](../logs/session-2026-02-06-phase2-complete.md)
+- [Model Experiments](./MODEL_EXPERIMENTS.md) (Experiment Set 4)
+- `temp-phase2-experiments/evaluation_results.json`
+- `temp-phase2-experiments/convnextv2_tiny_baseline_seed42/`
+
+---
+
 *Use the format above for new lessons. Keep entries concise and actionable. Focus on transferable insights rather than situational details.*
