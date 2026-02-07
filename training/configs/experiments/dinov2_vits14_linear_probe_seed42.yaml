@@ -8,7 +8,7 @@ data:
   root: "../cherry_classification/data"
   batch_size: 32
   num_workers: 4
-  input_size: 128
+  input_size: 126  # Changed from 128: DINOv2 requires multiple of 14 (126 = 14 * 9)
   normalize: true  # DINOv2 expects normalized input
   augmentation: true
 

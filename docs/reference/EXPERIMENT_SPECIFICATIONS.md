@@ -183,6 +183,8 @@ Run in parallel if possible:
 1.  **EXP-002 (ConvNeXt V2):** The modern CNN champion.
 2.  **EXP-006 (DINOv2):** The Foundation Model challenger.
 
+**⚠️ DINOv2 Resolution Constraint:** DINOv2 requires input dimensions to be a multiple of the patch size (14x14). Changed `input_size` from **128** to **126** (14 * 9) in the config.
+
 ### Phase 2C: Speed Option (Day 3)
 1.  **EXP-003 (EfficientNet-B2):** Only if EXP-002/006 are too slow (>30ms).
 
