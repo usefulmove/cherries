@@ -285,19 +285,18 @@ def main():
             lr=config["training"]["learning_rate"],
             weight_decay=config["training"]["weight_decay"],
         )
-    elif optimizer_name == "adamw":
-        # AdamW: decoupled weight decay (required for ConvNeXt V2)
-        optimizer = optim.AdamW(
-            model.parameters(),
-            lr=config["training"]["learning_rate"],
-            weight_decay=config["training"]["weight_decay"],
-        )
     elif optimizer_name == "sgd":
         optimizer = optim.SGD(
             model.parameters(),
             lr=config["training"]["learning_rate"],
             weight_decay=config["training"]["weight_decay"],
             momentum=0.9,
+        )
+    elif optimizer_name == "adamw":
+        optimizer = optim.AdamW(
+            model.parameters(),
+            lr=config["training"]["learning_rate"],
+            weight_decay=config["training"]["weight_decay"],
         )
     else:
         raise ValueError(f"Unknown optimizer: {optimizer_name}")
