@@ -288,4 +288,50 @@ Learning from model errors (two-stage) is inferior to explicit labeling or confi
 
 ---
 
+### [2026-02-07] ML/Workflow: Notebooks Must Auto-Update and Handle Type Formatting Safely
+
+**Context:**
+Deploying Phase 2 experiments to Colab failed initially due to two preventable issues:
+1. **Stale Code:** The notebook checked `if ! -d repo` and skipped cloning if the folder existed, leaving the environment with old code that lacked new configs.
+2. **Type Error:** A print statement formatting `Epoch {epoch:2s}` crashed when `epoch` was an integer (e.g., `1`), expecting a string.
+
+**What We Did:**
+1. **Auto-Update Logic:** Added an `else` branch to the clone step: if the directory exists, `cd` into it and `git pull`. This ensures latest code without full runtime restart.
+2. **Safe Formatting:** Changed formatting to `str(epoch):>2s` to handle both integers and "N/A" strings safely.
+3. **Repository Correction:** Fixed the repo URL which was pointing to a personal fork (`dedmonds/traina`) instead of the team repo (`usefulmove/cherries`).
+
+**Outcome:**
+Notebook is now robust against re-runs and type variations. The deployment process is "idempotent" – running it multiple times yields the correct latest state.
+
+**Key Takeaway:**
+Notebooks should be self-healing. Always include a `git pull` path for existing repositories. When formatting mixed-type variables (like metrics that can be `int`, `float`, or `str`), explicitly cast to string or use type-agnostic format specifiers.
+
+**References:**
+- `training/notebooks/colab_phase2_experiments.ipynb` (Cell 4 & 11)
+- [Session Log](../logs/session_2026-02-07_phase2_preparation.md)
+
+---
+
+### [2026-02-07] ML/Architecture: Foundation Models Have Strict Input Constraints (DINOv2)
+
+**Context:**
+Attempted to use DINOv2 with our standard 128x128 input size. Local validation revealed runtime errors because 128 is not a multiple of the model's 14x14 patch size (128 / 14 = 9.14).
+
+**What We Did:**
+1. Created a targeted test script `test_dino_resolution.py` to verify valid input sizes.
+2. Confirmed 126x126 (14x9) works, and 224x224 (native) works.
+3. Updated the experiment config to use `input_size: 126` for DINOv2 experiments only.
+
+**Outcome:**
+Prevented a guaranteed runtime crash in Colab. This validated the value of the new "pre-flight" validation step.
+
+**Key Takeaway:**
+Foundation models often have stricter constraints than standard CNNs (ResNet/EfficientNet). Always validate input dimension constraints locally before deploying to cloud resources. Don't assume standard resolutions (128, 256) will work "out of the box" with Vision Transformers.
+
+**References:**
+- [DINOv2 Experiment Config](../../training/configs/experiments/dinov2_vits14_linear_probe_seed42.yaml)
+- `training/scripts/test_phase2.py`
+
+---
+
 *Use the format above for new lessons. Keep entries concise and actionable. Focus on transferable insights rather than situational details.*
