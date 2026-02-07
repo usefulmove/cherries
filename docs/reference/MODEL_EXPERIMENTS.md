@@ -2,6 +2,20 @@
 
 **Date:** 2026-01-30
 
+## Important Context
+
+**Critical Discrepancy:** All experiments below used **2-class classification** (clean/pit only). Production currently uses **3-class** (clean/maybe/pit) via a [two-stage training methodology](./TRAINING_METHODOLOGY.md) that has documented concerns:
+
+- Stage 1: Binary classifier (pit vs no_pit)
+- Stage 2: Fine-tune on misclassifications labeled "maybe"
+- Result: 3-class output (clean/maybe/pit)
+
+**This creates two problems:**
+1. Our best experimental model (94.05% accuracy, 2-class) does not match production architecture
+2. The two-stage approach used for production has safety risks and architectural issues
+
+See [Training Methodology](./TRAINING_METHODOLOGY.md) for full assessment and recommended alternatives.
+
 ## Experiment Set 1: Augmentation & Architecture Search
 
 We ran 4 experiments to beat the production baseline (92.99% accuracy).

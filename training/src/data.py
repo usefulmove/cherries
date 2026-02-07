@@ -53,6 +53,7 @@ def get_transforms(
     # Training transforms (with optional augmentation)
     train_transform_list = []
     if augmentation:
+        # Standard geometric augmentations
         train_transform_list.extend(
             [
                 transforms.RandomHorizontalFlip(0.5),
@@ -61,10 +62,22 @@ def get_transforms(
                 transforms.RandomAffine(
                     degrees=0, translate=(0.1, 0.1), scale=(0.9, 1.1)
                 ),
-                transforms.ColorJitter(
-                    brightness=0.2, contrast=0.2, saturation=0.1, hue=0.05
-                ),
             ]
+        )
+
+        # Enhanced conveyor belt realism augmentations (Phase 2)
+        # Motion blur simulates conveyor movement
+        train_transform_list.append(
+            transforms.RandomApply(
+                [transforms.GaussianBlur(kernel_size=3, sigma=(0.1, 0.5))], p=0.3
+            )
+        )
+
+        # Stronger photometric distortions for lighting/shadow simulation
+        train_transform_list.append(
+            transforms.ColorJitter(
+                brightness=0.3, contrast=0.3, saturation=0.2, hue=0.05
+            )
         )
     train_transform_list.extend(base_transforms)
 

@@ -326,8 +326,13 @@ def main():
                 f"Warning: Unknown scheduler type {scheduler_type}, skipping scheduler"
             )
 
-    # Create loss function
-    criterion = nn.CrossEntropyLoss()
+    # Create loss function with optional label smoothing
+    label_smoothing = config["training"].get("label_smoothing", 0.0)
+    criterion = nn.CrossEntropyLoss(label_smoothing=label_smoothing)
+    if label_smoothing > 0:
+        print(f"Using CrossEntropyLoss with label_smoothing={label_smoothing}")
+    else:
+        print("Using standard CrossEntropyLoss (no label smoothing)")
 
     # Resume from checkpoint if specified
     start_epoch = 0

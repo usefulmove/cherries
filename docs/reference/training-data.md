@@ -138,6 +138,8 @@ Multiple dataset versions exported from Roboflow:
 - v1-v5: 2-class (clean, pit)
 - v6+: 3-class (clean, maybe, pit)
 
+**Important:** Training data contains only clean/pit labels. The "maybe" class was synthetically created via two-stage training (Stage 1: binary classifier, Stage 2: fine-tune on misclassifications as "maybe"). This approach has documented safety and architectural concerns. See [Training Methodology](./TRAINING_METHODOLOGY.md).
+
 **Preprocessing:**
 - Center crop to 128×128
 - No normalization (0-255 range)

@@ -1,0 +1,37 @@
+experiment:
+  name: smoke_test_convnext
+  description: "Quick smoke test - 1 epoch only"
+
+data:
+  root: "../../cherry_classification/data"
+  batch_size: 8
+  num_workers: 2
+  input_size: 128
+  normalize: false
+  augmentation: true
+
+model:
+  architecture: convnext_tiny
+  pretrained: true
+  num_classes: 2
+  freeze_backbone: false
+
+training:
+  epochs: 1
+  optimizer: adam
+  learning_rate: 0.0001
+  weight_decay: 0.00001
+  use_scheduler: false
+  device: cpu
+  mixed_precision: false
+  label_smoothing: 0.0
+
+checkpointing:
+  save_every: 1
+  save_best: true
+  output_dir: "./test_output/smoke_convnext"
+
+logging:
+  log_file: "metrics.json"
+  print_every: 1
+  save_confusion_matrix: true

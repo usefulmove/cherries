@@ -162,10 +162,13 @@ class SEBlock(nn.Module):
 
 **Problem:** These thresholds may not be optimal. The "maybe" category creates ambiguity.
 
+**Critical Context:** This analysis shows a 2-class architecture (`nn.Linear(2048, 2)`), but production uses 3-class output via a two-stage training approach that has documented concerns. The "maybe" class was created by fine-tuning on Stage 1 misclassifications, not manually labeled. See [Training Methodology](../../../reference/TRAINING_METHODOLOGY.md).
+
 **Recommendations:**
 - Analyze the probability distributions on validation data
 - Use precision-recall curves to find optimal threshold
 - Consider eliminating the "maybe" category or adjusting the gap between 0.5 and 0.75
+- **Preferred:** Move to conventional 3-class training with manually labeled "maybe" examples, or enhanced 2-class with calibrated confidence tiers
 
 ---
 

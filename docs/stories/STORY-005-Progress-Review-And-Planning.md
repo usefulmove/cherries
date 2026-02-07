@@ -8,7 +8,7 @@ Review completed optimization experiments (ResNet50, ResNet18), document finding
 - [x] Document experiment infrastructure improvements (notebook configuration, skip flags)
 - [ ] Review developer meeting outcomes and implications
 - [ ] Identify bottlenecks and opportunities for next optimization cycle
-- [ ] Create roadmap with prioritized next experiments (if any)
+- [x] Create roadmap with prioritized next experiments (if any)
 - [x] Document any new insights in LESSONS.md
 
 ## Context Scope
@@ -110,3 +110,65 @@ Review completed optimization experiments (ResNet50, ResNet18), document finding
 - Decision point: Do we pursue further optimization, or is current best model (94.05%) acceptable?
 - Timeline dependency: Waits for developer meeting outcomes before finalizing roadmap
 - **Meeting completed:** 2026-02-05 at 2:00 PM
+- **Phase 1 Research Started:** 2026-02-06
+
+## Research Progress Log
+
+### 2026-02-06: Phase 1 Research Initiated
+**Activities:**
+- Created comprehensive EXPERIMENT_ROADMAP.md with 4-phase structure
+- Initiated SOTA research on:
+  - Modern architectures (ConvNeXt, EfficientNet, MobileViT)
+  - 3-class classification strategies (threshold calibration, synthetic data, soft labeling)
+  - Training methodology enhancements (label smoothing, attention mechanisms)
+- Documented findings in SOTA_RESEARCH.md
+
+**Key Findings:**
+1. **ConvNeXt-Tiny** (28M params) - Top recommendation: modernized ResNet with PyTorch native support
+2. **EfficientNet-B2/B3** - Worth retesting with unnormalized training (previous B0 failure may be due to setup)
+3. **Threshold Optimization** - Immediate value opportunity on existing 94.05% model
+4. **Mixup/CutMix** - Viable approach for synthetic "maybe" data generation
+5. **Label Smoothing** - Easy win, should be standard in all future training
+
+**Preliminary Experiment List:**
+1. Threshold optimization on 94.05% model (HIGH priority)
+2. ConvNeXt-Tiny training (HIGH priority)
+3. EfficientNet-B2 with unnormalized input (HIGH priority)
+4. ResNet50 + SE attention (MEDIUM priority)
+5. Mixup-based 3-class training (MEDIUM priority)
+
+**Next Actions:**
+- Continue researching attention mechanisms (CBAM vs SE)
+- Verify PyTorch model availability for top candidates
+- Inventory exact training data counts
+
+**Session Logged:** `docs/logs/session-2026-02-06-phase1-research.md`
+
+### 2026-02-06: Phase 2 Implementation Complete
+**Activities:**
+- Created EXPERIMENT_SPECIFICATIONS.md with detailed designs for 5 experiments
+- Added model architecture support (ConvNeXt-Tiny, EfficientNet-B2/B3)
+- Implemented label smoothing in training pipeline
+- Created 4 experiment YAML configs with proper settings
+- Built Colab notebook with skip-flag pattern (11 cells)
+- Conducted local smoke testing - all tests passed
+
+**Artifacts Created:**
+- `docs/reference/EXPERIMENT_SPECIFICATIONS.md` - Experiment designs
+- `docs/reference/PHASE2_IMPLEMENTATION_SUMMARY.md` - Implementation overview
+- `docs/reference/SMOKE_TEST_RESULTS.md` - Test results
+- `training/configs/experiments/*.yaml` - 4 experiment configs
+- `training/notebooks/colab_phase2_experiments.ipynb` - Colab notebook
+- Updated `training/src/model.py` and `training/scripts/train.py`
+
+**Test Results:**
+- ✅ All model architectures load (ConvNeXt, EfficientNet-B2/B3)
+- ✅ Data loading verified (4,902 samples)
+- ✅ Training pipeline executes
+- ✅ Label smoothing functional
+- ✅ Configs parse correctly
+- ✅ Forward pass works
+
+**Status:** Ready for Colab execution
+
+**Session Logged:** `docs/logs/session-2026-02-06-phase2-implementation.md`

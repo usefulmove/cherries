@@ -19,7 +19,53 @@ from torchvision.models import (
     MobileNet_V3_Large_Weights,
     efficientnet_b0,
     EfficientNet_B0_Weights,
+    efficientnet_b2,
+    EfficientNet_B2_Weights,
+    efficientnet_b3,
+    EfficientNet_B3_Weights,
+    convnext_tiny,
+    ConvNeXt_Tiny_Weights,
 )
+
+# Optional imports for Phase 2 experiments
+try:
+    import timm
+
+    TIMM_AVAILABLE = True
+except ImportError:
+    TIMM_AVAILABLE = False
+    timm = None
+
+try:
+    dinov2_backbone = torch.hub.load(
+        "facebookresearch/dinov2", "dinov2_vits14", pretrained=False
+    )
+    DINO_AVAILABLE = True
+    del dinov2_backbone  # Clean up test load
+except Exception:
+    DINO_AVAILABLE = False
+
+
+class DinoV2Classifier(nn.Module):
+    """DINOv2 Vision Transformer with linear classification head.
+
+    Phase 2: Foundation model approach - frozen backbone + trainable linear head.
+    DINOv2 produces rich visual features that excel at fine-grained tasks.
+    """
+
+    def __init__(self, backbone: nn.Module, num_classes: int = 2):
+        super().__init__()
+        self.backbone = backbone
+        self.num_classes = num_classes
+        # DINOv2 ViT-S produces 384-dim embeddings
+        self.head = nn.Linear(384, num_classes)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        # Extract features from frozen backbone
+        features = self.backbone(x)
+        # Pass through linear classifier
+        logits = self.head(features)
+        return logits
 
 
 def create_classifier(
@@ -32,7 +78,8 @@ def create_classifier(
     """Create a classifier model (factory function).
 
     Args:
-        architecture: Model architecture ('resnet18', 'resnet50', 'mobilenet_v3_large', 'efficientnet_b0')
+        architecture: Model architecture ('resnet18', 'resnet50', 'mobilenet_v3_large',
+                      'efficientnet_b0', 'efficientnet_b2', 'efficientnet_b3', 'convnext_tiny')
         num_classes: Number of output classes
         pretrained: Whether to load ImageNet pretrained weights
         freeze_backbone: If True, freeze all layers except final classifier
@@ -92,6 +139,112 @@ def create_classifier(
         num_ftrs = model.classifier[-1].in_features
         model.classifier[-1] = nn.Linear(num_ftrs, num_classes)
         print(f"Replaced classifier head: Linear({num_ftrs}, {num_classes})")
+
+    elif architecture == "efficientnet_b2":
+        if pretrained:
+            model = efficientnet_b2(weights=EfficientNet_B2_Weights.IMAGENET1K_V1)
+            print("Loaded EfficientNet-B2 with ImageNet weights")
+        else:
+            model = efficientnet_b2(weights=None)
+            print("Loaded EfficientNet-B2 without pretrained weights")
+
+        if freeze_backbone:
+            print("Freezing backbone layers")
+            for param in model.parameters():
+                param.requires_grad = False
+
+        # Replace classifier
+        num_ftrs = model.classifier[-1].in_features
+        model.classifier[-1] = nn.Linear(num_ftrs, num_classes)
+        print(f"Replaced classifier head: Linear({num_ftrs}, {num_classes})")
+
+    elif architecture == "efficientnet_b3":
+        if pretrained:
+            model = efficientnet_b3(weights=EfficientNet_B3_Weights.IMAGENET1K_V1)
+            print("Loaded EfficientNet-B3 with ImageNet weights")
+        else:
+            model = efficientnet_b3(weights=None)
+            print("Loaded EfficientNet-B3 without pretrained weights")
+
+        if freeze_backbone:
+            print("Freezing backbone layers")
+            for param in model.parameters():
+                param.requires_grad = False
+
+        # Replace classifier
+        num_ftrs = model.classifier[-1].in_features
+        model.classifier[-1] = nn.Linear(num_ftrs, num_classes)
+        print(f"Replaced classifier head: Linear({num_ftrs}, {num_classes})")
+
+    elif architecture == "convnext_tiny":
+        if pretrained:
+            model = convnext_tiny(weights=ConvNeXt_Tiny_Weights.IMAGENET1K_V1)
+            print("Loaded ConvNeXt-Tiny with ImageNet weights")
+        else:
+            model = convnext_tiny(weights=None)
+            print("Loaded ConvNeXt-Tiny without pretrained weights")
+
+        if freeze_backbone:
+            print("Freezing backbone layers")
+            for param in model.parameters():
+                param.requires_grad = False
+
+        # Replace classifier
+        # ConvNeXt classifier is a Linear layer in the Sequential
+        num_ftrs = model.classifier[-1].in_features
+        model.classifier[-1] = nn.Linear(num_ftrs, num_classes)
+        print(f"Replaced classifier head: Linear({num_ftrs}, {num_classes})")
+
+    elif architecture == "convnextv2_tiny":
+        # Phase 2: ConvNeXt V2 with FCMAE pre-training (superior for defect detection)
+        if not TIMM_AVAILABLE:
+            raise ImportError(
+                "timm library required for ConvNeXt V2. Install: pip install timm"
+            )
+
+        # Use the FCMAE fine-tuned variant (best for transfer learning)
+        model_name = "convnextv2_tiny.fcmae_ft_in1k"
+        import timm as timm_module
+
+        if pretrained:
+            model = timm_module.create_model(
+                model_name, pretrained=True, num_classes=num_classes
+            )
+            print(f"Loaded {model_name} with FCMAE pre-training")
+        else:
+            model = timm_module.create_model(
+                model_name, pretrained=False, num_classes=num_classes
+            )
+            print(f"Loaded {model_name} without pretrained weights")
+
+        if freeze_backbone:
+            print("Freezing backbone layers")
+            for param in model.parameters():
+                param.requires_grad = False
+
+    elif architecture == "dinov2_vits14":
+        # Phase 2: DINOv2 Vision Transformer (foundation model with linear probe)
+        # Load backbone from torch hub
+        if pretrained:
+            backbone = torch.hub.load(
+                "facebookresearch/dinov2", "dinov2_vits14", pretrained=True
+            )
+            print("Loaded DINOv2 ViT-S/14 backbone from torch hub")
+        else:
+            backbone = torch.hub.load(
+                "facebookresearch/dinov2", "dinov2_vits14", pretrained=False
+            )
+            print("Loaded DINOv2 ViT-S/14 backbone without pretrained weights")
+
+        # Always freeze backbone for linear probe approach
+        print("Freezing DINOv2 backbone (linear probe mode)")
+        for param in backbone.parameters():
+            param.requires_grad = False
+
+        # Create wrapper with linear head
+        # DINOv2 ViT-S produces 384-dim features
+        model = DinoV2Classifier(backbone, num_classes=num_classes)
+        print(f"Created linear classifier head: Linear(384, {num_classes})")
 
     else:
         raise ValueError(f"Unknown architecture: {architecture}")

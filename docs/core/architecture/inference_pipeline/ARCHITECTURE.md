@@ -75,6 +75,29 @@ The classifier outputs probabilities for **three classes**, which are mapped to 
 
 **Evolution Note:** Earlier versions (v1-v5) used a 2-class classifier (clean/pit) with threshold-based maybe detection. The current 3-class classifier (v6+) uses explicit class predictions for clean/maybe/pit.
 
+### Training Methodology Assessment
+
+**Status:** The 3-class production model was trained using a **two-stage approach** with documented concerns:
+
+| Stage | Process | Outcome |
+|-------|---------|---------|
+| **Stage 1** | Train binary classifier (pit vs no_pit) | Binary decision boundary |
+| **Stage 2** | Fine-tune on misclassified examples labeled "maybe" | 3-class output (clean/maybe/pit) |
+
+**Key Concerns:**
+1. **Safety Risk:** Stage 1 misses become permanent false negatives
+2. **Architecture Issues:** "Maybe" class violates mutual exclusivity; defined by errors, not ground truth
+3. **Catastrophic Forgetting:** High risk of eroding Stage 1 learning during Stage 2
+4. **Threshold Redundancy:** 3-class output converted back to thresholds (0.5/0.75) in production
+5. **Auditability:** Complex cascade difficult to validate and explain
+
+**Recommended Alternatives:**
+- **Current 3-class explicit** (keep): Manually label "maybe" examples, train 3-class from scratch
+- **Enhanced 2-class**: Binary classifier with calibrated confidence tiers (pit≥0.85 auto-reject, 0.65-0.85 review, <0.65 accept)
+- **Ensemble methods**: Multiple models; disagreement indicates uncertainty
+
+See [Training Methodology](/docs/reference/TRAINING_METHODOLOGY.md) for full assessment.
+
 **Key Implementation Details:**
 - **Locations array** (`ai_detector3.py:346`): `['none', 'cherry_clean', 'cherry_pit', 'side', 'top/bot', 'maybe']`
 - **Classification logic** (`ai_detector3.py:616-625`): Uses `classes.eq()` for 3-class decisions
@@ -148,9 +171,11 @@ The stem model is **loaded and executed** in production but its practical sortin
 See [Training Data Reference](../../reference/training-data.md) for dataset details.
 
 **Key Datasets:**
-- Classification: GitHub repo + collected images
+- Classification: GitHub repo + collected images (inherently 2-class: clean/pit)
 - Segmentation: COCO/VOC annotations
 - **Stems:** `/media/dedmonds/Extreme SSD/traina cherry line/Pictures/hdr/20240923 stems/` (~570 samples)
+
+**Note:** Training data contains only clean/pit labels. The "maybe" class was synthetically created from Stage 1 misclassifications, not manually labeled. See [Training Methodology](../../reference/TRAINING_METHODOLOGY.md).
 
 ## Technical Debt & Known Issues
 
@@ -158,6 +183,7 @@ See [Training Data Reference](../../reference/training-data.md) for dataset deta
 *   **Model Loading:** There is a known configuration bug where weights might be loaded from `control_node/resource` instead of `cherry_detection/resource`. Always verify which model is being loaded at runtime.
 *   **Denormal Values:** ResNet50 on CPU is sensitive to "denormal" float values which cause massive slowdowns. We use `fix_denormals.py` to sanitize weights.
 *   **Stem Detection Purpose:** The practical use of stem detections in the sorting logic is unclear. See [Open Questions: Stem Detection](../../reference/open-questions-stem-detection.md).
+*   **Training Methodology Concerns:** The two-stage training approach (binary → 3-class via error fine-tuning) has documented safety and architectural risks. See [Training Methodology](../../reference/TRAINING_METHODOLOGY.md).
 
 ## Discovery Links
 

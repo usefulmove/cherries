@@ -260,4 +260,32 @@ Architecture documentation should capture operational workflows, not just techni
 
 ---
 
+### [2026-02-06] ML/Training: Two-Stage Training Methodology Has Documented Concerns
+
+**Context:**
+Discovered the production classification model (`classification-2_26_2025-iter5.pt`) was trained using a two-stage approach: Stage 1 trains binary classifier (pit vs no_pit), Stage 2 fine-tunes on misclassifications labeled "maybe" to create 3-class output. This creates the "maybe" class from model errors rather than ground truth labels.
+
+**Assessment:**
+This approach has critical flaws:
+1. **Safety Risk:** Stage 1 misses become permanent false negatives
+2. **Architecture Violation:** "Maybe" class violates mutual exclusivity; defined by errors, not ground truth  
+3. **Catastrophic Forgetting:** High risk of eroding Stage 1 learning during Stage 2 fine-tuning
+4. **Threshold Redundancy:** 3-class output converted back to thresholds (0.5/0.75) in production anyway
+5. **Auditability:** Complex cascade difficult to validate and explain to regulators
+
+**Recommended Alternatives:**
+1. **Current 3-class explicit** (keep): Manually label "maybe" examples, train 3-class from scratch
+2. **Enhanced 2-class**: Binary classifier with calibrated confidence tiers (pit≥0.85 auto-reject, 0.65-0.85 review, <0.65 accept)
+3. **Ensemble methods**: Multiple models; disagreement indicates uncertainty
+
+**Key Takeaway:**
+Learning from model errors (two-stage) is inferior to explicit labeling or confidence-based routing. The "maybe" class should represent genuine uncertainty (lighting, occlusion, damage), not training artifacts. Training data should reflect ground truth, not algorithmic confusion.
+
+**References:**
+- [Training Methodology](./TRAINING_METHODOLOGY.md)
+- [Inference Pipeline Architecture](../core/architecture/inference_pipeline/ARCHITECTURE.md)
+- [Model Experiments](./MODEL_EXPERIMENTS.md)
+
+---
+
 *Use the format above for new lessons. Keep entries concise and actionable. Focus on transferable insights rather than situational details.*
