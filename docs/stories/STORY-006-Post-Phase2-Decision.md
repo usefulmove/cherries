@@ -2,7 +2,7 @@
 
 ## Goal
 
-Make deployment decision after Phase 2 experiments revealed ConvNeXt V2 achieves superior accuracy (94.21%) but fails latency requirements (58ms vs 30ms target). Determine optimal path forward given the accuracy-latency tradeoff.
+Make deployment decision after Phase 2 experiments revealed ConvNeXt V2 achieves superior accuracy (94.21%) but fails latency requirements on CPU (58ms vs 16ms baseline). Determine optimal path forward given the accuracy-latency tradeoff and upcoming GPU benchmarking.
 
 ## Current State
 
@@ -15,8 +15,14 @@ Make deployment decision after Phase 2 experiments revealed ConvNeXt V2 achieves
 | ConvNeXt V2-Tiny | **94.21%** | **~58ms** | 111MB | Too slow |
 | ResNet18 | 91.92% | ~8-10ms | 43MB | Speed candidate |
 
+**IMPORTANT:** Latency benchmarks above are CPU-based (dev workstation). Production system uses NVIDIA GPU (model TBD). GPU inference expected to be significantly faster:
+- ResNet50 on GPU: Estimated 1-3ms (vs 16ms CPU)
+- ConvNeXt V2 on GPU: Estimated 3-8ms (vs 58ms CPU)
+
+**Action Required:** Benchmark both models on production GPU before final deployment decision.
+
 ### Critical Finding
-ConvNeXt V2's 0.16% accuracy improvement costs **3.6x latency increase** - not viable for real-time conveyor inspection.
+ConvNeXt V2's 0.16% accuracy improvement costs **3.6x latency increase on CPU** - viability for production depends on GPU benchmarking results.
 
 ## Decision Options
 
@@ -34,7 +40,7 @@ ConvNeXt V2's 0.16% accuracy improvement costs **3.6x latency increase** - not v
 
 **Cons:**
 - Requires significant engineering effort
-- Uncertain if can reach <30ms target
+- Uncertain if can reach <16ms baseline on CPU
 - Risk of accuracy degradation during optimization
 - Needs testing on production hardware
 
@@ -144,7 +150,7 @@ ConvNeXt V2's 0.16% accuracy improvement costs **3.6x latency increase** - not v
 
 ## Discussion Points
 
-1. **Latency requirements:** Is 30ms a hard constraint or can we negotiate 40-50ms for better accuracy?
+1. **Latency requirements:** Baseline is 16ms (CPU) - GPU performance will be significantly faster.
 
 2. **Production hardware:** What's the actual CPU in deployment? Our test may not match.
 

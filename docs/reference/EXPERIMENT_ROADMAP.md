@@ -19,8 +19,8 @@ This roadmap outlines a research-first approach to improving the cherry pit clas
 | **ResNet18 Alternative** | 91.92% | ~8-10ms | 43MB | 2-class | Speed-focused |
 
 ### Constraints
-- **Latency Budget:** <30ms for classification stage (currently 16ms on ResNet50)
-- **Inference Hardware:** CPU only (production constraint)
+- **Latency Budget:** Maintain performance comparable to 16ms CPU baseline (faster on GPU)
+- **Inference Hardware:** NVIDIA GPU (production), CPU (development benchmarks)
 - **Training Infrastructure:** Google Colab Pro (Tesla T4 GPU)
 - **Training Time:** ~30s/epoch, 30 epochs standard (~15-20 min per experiment)
 - **Critical Gap:** No labeled "maybe" training data available
@@ -299,7 +299,7 @@ Analyze results and make deployment recommendations.
 
 3. **Deployment Readiness Check**
    - Model size acceptable? (<100MB)
-   - Latency within budget? (<30ms)
+   - Latency within budget? (~16ms CPU baseline)
    - No denormal values (latency killer)
    - Compatible with existing preprocessing
 
@@ -338,7 +338,7 @@ Analyze results and make deployment recommendations.
 ### Target Success
 - **Achieve:** At least one model with >94.05% accuracy (2-class) OR
 - **Achieve:** 3-class model with >92% accuracy on all classes
-- **Maintain:** Latency <30ms on CPU
+- **Maintain:** Latency comparable to ~16ms baseline (CPU)
 - **Demonstrate:** Clear improvement over production baseline
 
 ### Stretch Goal

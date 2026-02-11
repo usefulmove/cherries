@@ -27,6 +27,48 @@ Productivity patterns, tooling decisions, and process improvements.
 
 ## Lessons
 
+### [2026-02-11] ML/Training: "Maybe" Class is an Active Learning Workflow, Not Just a Threshold
+**Context:**
+Comparison of original training notebooks with production code revealed the true nature of the "Maybe" class. It wasn't just a probability threshold—it was an iterative "active learning" workflow.
+
+**What We Found:**
+The original developer ran a specific loop:
+1. Train a 2-class model (Clean/Pit).
+2. Run inference on all data.
+3. Use a script (`sort_for_maybe`) to move low-confidence predictions to a "maybe" folder.
+4. Re-train (iteration 4/5) with this cleaned data as a 3rd class.
+
+**Outcome:**
+Confirmed that the 3-class production model is the result of this iterative process. The "Maybe" class represents "ambiguous junk" (glare, blur, stems) that the model explicitly learns to reject, rather than just "low confidence".
+
+**Key Takeaway:**
+This validates the "Safety Valve" pattern. Instead of fighting to classify every edge case, the system explicitly learns to recognize "I don't know" as a valid state, routing those items for manual review. We should modernize this workflow (using `fiftyone` instead of file copying) rather than discarding it.
+
+**References:**
+- `temp-old-training-docs/hdr_classification.ipynb`
+- `temp-old-training-docs/hdr_classification_iter4.ipynb`
+- [Inference Pipeline Architecture](../core/architecture/inference_pipeline/ARCHITECTURE.md)
+
+---
+
+### [2026-02-11] ML/Training: Unnormalized Training is the Correct Production Path
+**Context:**
+We previously hypothesized that "Unnormalized" training was the way to go to avoid ROS2 code changes. Analysis of original training docs confirmed this was the original intent.
+
+**What We Found:**
+The original training notebooks (`hdr_classification.ipynb`) explicitly comment out `tf.Normalize`. The production system expects raw tensors.
+
+**Outcome:**
+Confirms our strategy to stick with unnormalized training for all future models.
+
+**Key Takeaway:**
+When inheriting legacy ML systems, look for commented-out code in training notebooks—it often reveals the "secret sauce" of the preprocessing pipeline that isn't documented elsewhere.
+
+**References:**
+- `temp-old-training-docs/hdr_classification.ipynb` (Cell 7)
+
+---
+
 ### [2026-01-30] ML/Training: Model Weight Denormalization Causes Severe Latency Regression
 
 **Context:**
@@ -342,10 +384,11 @@ Foundation models often have stricter constraints than standard CNNs (ResNet/Eff
 Ran Phase 2 SOTA experiments comparing ConvNeXt V2 (FCMAE pre-training), EfficientNet-B2, and DINOv2 foundation models. ConvNeXt V2 achieved 94.21% accuracy (best ever), beating our ResNet50 baseline (94.05%) by 0.16%.
 
 **What We Did:**
-Measured inference latency on production-equivalent CPU hardware. Results:
-- ConvNeXt V2-Tiny: **58ms** (measured locally, 100 runs)
-- ResNet50 (current best): **16ms** (documented baseline)
-- Target requirement: **<30ms**
+Measured inference latency on development CPU workstation for relative comparison. Results:
+- ConvNeXt V2-Tiny: **58ms** (CPU, measured locally, 100 runs)
+- ResNet50 (current best): **16ms** (CPU, documented baseline)
+- **Note:** Production uses NVIDIA GPU - these are CPU benchmarks for comparison only
+- Target requirement: **Maintain ~16ms baseline throughput**
 
 **Outcome:**
 ConvNeXt V2 is **3.6x slower** than ResNet50. The 0.16% accuracy gain doesn't justify the latency cost for real-time conveyor belt inspection. Model not suitable for deployment despite being most accurate.
@@ -359,12 +402,12 @@ ConvNeXt V2 is **3.6x slower** than ResNet50. The 0.16% accuracy gain doesn't ju
 **Decision Framework:**
 | ConvNeXt V2 Latency | Action |
 |---------------------|--------|
-| <20ms | Deploy immediately |
-| 20-30ms | Deploy with optimization (quantization, pruning) |
-| >30ms | Stick with ResNet50 family, pursue SE-ResNet50 or optimization |
+| Comparable to Baseline | Deploy immediately |
+| Slower but Acceptable | Deploy with optimization (quantization, pruning) |
+| Significantly Slower | Stick with ResNet50 family, pursue SE-ResNet50 or optimization |
 
 **Key Takeaway:**
-Always measure latency on target hardware before celebrating accuracy gains. Modern architectures (ConvNeXt, ViT) often have significant inference penalties despite similar parameter counts. For real-time systems, latency constraints can override accuracy improvements <1%.
+Always measure latency on target hardware before celebrating accuracy gains. CPU benchmarks are useful for relative model comparisons but don't reflect production GPU performance. Modern architectures (ConvNeXt, ViT) often have significant inference penalties despite similar parameter counts. For real-time systems, latency constraints can override accuracy improvements <1%.
 
 **References:**
 - [Session Log](../logs/session-2026-02-06-phase2-complete.md)

@@ -265,17 +265,20 @@ Following Phase 1 successes, we ran state-of-the-art optimization experiments ba
 
 **Deploy ConvNeXt V2-Tiny if:**
 - ✓ Accuracy improvement (94.21% vs 92.99%) justifies model size increase
-- ✓ Latency testing passes (<30ms on production hardware)
+- ✓ Latency testing passes (comparable to 16ms baseline on production GPU)
 - ✓ Threshold optimization improves pit recall ≥99%
 
 **Next Steps:**
-1. Benchmark latency on production CPU hardware
+1. Benchmark latency on production GPU hardware (CPU benchmarks complete: 58ms)
 2. Run threshold optimization for 3-class (clean/maybe/pit) deployment
 3. Evaluate on threading_ws production system
 4. Consider full fine-tuning DINOv2 if more compute available
 
+**Note:** Current latency benchmarks (58ms ConvNeXt, 16ms ResNet50) are CPU-only measurements from development workstation. Production system uses NVIDIA GPU - actual performance expected to be significantly faster.
+
 ### Artifacts
-- **Best Model:** `temp-phase2-experiments/convnextv2_tiny_baseline_seed42/model_best.pt`
-- **Metrics:** `temp-phase2-experiments/convnextv2_tiny_baseline_seed42/metrics.json`
-- **Config:** `temp-phase2-experiments/convnextv2_tiny_baseline_seed42/config.yaml`
-- **Training Notebook:** `colab_phase2_experiments.completed20260206.ipynb`
+- **Best Model:** `threading_ws/src/cherry_detection/resource/experimental/convnextv2/model_best.pt`
+- **Metrics:** `threading_ws/src/cherry_detection/resource/experimental/convnextv2/metrics.json`
+- **Config:** `threading_ws/src/cherry_detection/resource/experimental/convnextv2/config.yaml`
+- **Training Notebook:** `training/notebooks/archive/colab_phase2_experiments.ipynb`
+- **CPU Evaluation:** `docs/reference/convnextv2_cpu_evaluation_results.json`

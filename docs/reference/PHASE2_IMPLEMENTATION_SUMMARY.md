@@ -76,7 +76,7 @@ Phase 2 (SOTA Optimization) is now **complete**. All experiments have been execu
 ## Next Steps (Phase 3: Deployment Preparation)
 
 ### Immediate
-1. **Measure latency** on production CPU hardware
+1. **Measure latency** on production GPU hardware (currently benchmarked on dev CPU only)
 2. **Run threshold optimization** for 3-class (clean/maybe/pit)
 3. **Test on threading_ws** production system
 
@@ -88,9 +88,9 @@ Phase 2 (SOTA Optimization) is now **complete**. All experiments have been execu
 ### Decision Matrix
 | ConvNeXt V2 Latency | Action |
 |---------------------|--------|
-| <20ms | Deploy immediately |
-| 20-30ms | Deploy with optimization |
-| >30ms | Consider ResNet50 or SE-ResNet50 |
+| Comparable to Baseline | Deploy immediately |
+| Slower but Acceptable | Deploy with optimization |
+| Significantly Slower | Consider ResNet50 or SE-ResNet50 |
 
 ---
 

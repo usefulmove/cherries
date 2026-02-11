@@ -24,35 +24,37 @@ The current production system uses a **3-model pipeline** (algorithm v6/hdr_v1) 
 
 | Model | Architecture | Input | Output | Classes | File |
 |-------|-------------|-------|--------|---------|------|
-| **Segmentation** | Mask R-CNN ResNet50 FPN | Grayscale (500×2464) | Masks, boxes, scores | 2 (bg, cherry) | `seg_model_red_v1.pt` |
+| **Segmentation** | Mask R-CNN ResNet50 FPN | Grayscale (500×2464) (Red channel stacked 3x) | Masks, boxes, scores | 2 (bg, cherry) | `seg_model_red_v1.pt` |
 | **Classification** | ResNet50 | 128×128 crops | Quality scores | **3** (clean, maybe, pit) | `classification-2_26_2025-iter5.pt` |
-| **Stem Detection** | Faster R-CNN ResNet50 FPN v2 | Color RGB (500×2464) | Stem bounding boxes | 2 (bg, stem) | `stem_model_10_5_2024.pt` |
+| **Stem Detection** | Faster R-CNN ResNet50 FPN v2 | Color RGB (cropped to 500×2464 top strip) | Stem bounding boxes | 2 (bg, stem) | `stem_model_10_5_2024.pt` |
 
 ### Detection Flow
 
 ```
 ┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
 │  Grayscale Image│────▶│  Mask R-CNN      │────▶│ Cherry ROIs     │
-│  (bot1/bot2/top2│     │  Segmentation    │     │ + Masks         │
+│  (Red Channel)  │     │  Segmentation    │     │ + Masks         │
 └─────────────────┘     └──────────────────┘     └─────────────────┘
          │                                                  │
-         │                                                  ▼
+         │ (Stacked 3x to fake RGB)                         ▼
          │                                         ┌──────────────────┐
          │                                         │ Crop & Resize    │
          │                                         │ 128×128 patches  │
          │                                         └──────────────────┘
          │                                                  │
-         ▼                                                  ▼
+         │                                                  ▼
 ┌─────────────────┐     ┌──────────────────┐     ┌──────────────────┐
 │  Color Image    │────▶│ Faster R-CNN     │     │ ResNet50         │
 │  (RGB aligned)  │     │ Stem Detection   │     │ Classification   │
 └─────────────────┘     └──────────────────┘     └──────────────────┘
-         │                                                  │
-         ▼                                                  ▼
+         │               (Cropped to top            (3-Class Output:
+         │                strip: y=40-480)           Clean, Maybe, Pit)
+         ▼                                                  │
 ┌─────────────────┐                              ┌──────────────────┐
 │ Stem Boxes      │                              │ Class Labels     │
 │ (Type 6)        │                              │ (1,2,3,5)        │
 └─────────────────┘                              └──────────────────┘
+
                                                           │
                                                           ▼
                                                 ┌──────────────────┐

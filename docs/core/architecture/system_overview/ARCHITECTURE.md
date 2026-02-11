@@ -41,7 +41,7 @@ Located in `cherry_system/cherry_interfaces/`. This package contains the ROS2 de
 
 ## Key Constraints
 *   **Real-time Constraint**: The entire pipeline (Trigger -> Sort) must happen within the travel time between camera and ejector.
-*   **Inference Latency**: Must stay under **30ms** per frame to keep up with belt speed.
+*   **Inference Latency**: Must meet production throughput requirements (baseline: ~16ms on CPU, faster on GPU).
 *   **ROS2 Distribution**: Humble Hawksbill.
 
 ## Launch Configurations

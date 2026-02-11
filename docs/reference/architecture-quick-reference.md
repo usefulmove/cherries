@@ -135,8 +135,8 @@ PHYSICAL WORLD                        SOFTWARE PIPELINE
 | **Total Pipeline** | < Belt Travel Time | ~50-100ms | Must complete before ejector |
 | **Vision Capture** | < 5ms | ~2-3ms | Strobe + camera readout |
 | **Image Assembly** | < 2ms | ~1ms | Composite creation |
-| **Segmentation (Mask R-CNN)** | < 15ms | ~8-12ms | CPU inference |
-| **Classification (ResNet50)** | < 30ms | ~16ms | CPU inference |
+| **Segmentation (Mask R-CNN)** | < 15ms | ~8-12ms | GPU inference |
+| **Classification (ResNet50)** | < 16ms | ~16ms (CPU baseline) | GPU inference (faster) |
 | **Tracking/Decision** | < 5ms | ~1-2ms | Coordinate mapping |
 | **Robot/Actuation** | < 50ms | ~20-30ms | Network + mechanical |
 
@@ -205,8 +205,10 @@ PHYSICAL WORLD                        SOFTWARE PIPELINE
 | **Mask R-CNN Score Threshold** | 0.5 | Detection sensitivity |
 | **Mask R-CNN NMS Threshold** | 0.5 | Overlap suppression |
 | **Input Crop Size** | 128×128 | Classification input |
-| **Inference Device** | CPU | No GPU acceleration |
+| **Inference Device** | NVIDIA GPU (model TBD) | CUDA-enabled PyTorch |
 | **Belt Speed** | [TBD] | Determines latency budget |
+
+**Latency Note:** Baseline benchmarks (16ms) were measured on CPU for development/comparison purposes. Production system uses NVIDIA GPU for inference. GPU latency benchmarks pending hardware confirmation.
 
 ---
 

@@ -1,0 +1,37 @@
+checkpointing:
+  output_dir: /content/drive/MyDrive/cherry_experiments/convnextv2_tiny_baseline_seed42
+  save_best: true
+  save_every: 5
+data:
+  augmentation: true
+  batch_size: 32
+  input_size: 128
+  normalize: false
+  num_workers: 4
+  root: /content/cherry_classification/data
+experiment:
+  description: ConvNeXt V2-Tiny baseline training with FCMAE pre-training (no label
+    smoothing) - Seed 42
+  id: EXP-002A
+  name: convnextv2_tiny_baseline_seed42
+  seed: 42
+logging:
+  log_file: metrics.json
+  print_every: 1
+  save_confusion_matrix: true
+model:
+  architecture: convnextv2_tiny
+  freeze_backbone: false
+  num_classes: 2
+  pretrained: true
+training:
+  device: cuda
+  epochs: 30
+  label_smoothing: 0.0
+  learning_rate: 0.0001
+  mixed_precision: false
+  optimizer: adamw
+  scheduler_t_max: 30
+  scheduler_type: cosine
+  use_scheduler: true
+  weight_decay: 0.05

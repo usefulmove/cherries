@@ -296,6 +296,12 @@ What was accomplished.
 
 **Status:** Production-ready, self-contained, copied from backup 2025-02-05
 
+**Hardware Infrastructure:**
+- **Compute:** NVIDIA GPU (model TBD) for CUDA-accelerated inference
+- **Cameras:** Cognex (HDR multi-layer imaging)
+- **I/O:** PLC Ethernet/IP interface
+- **Code:** Full CUDA support with CPU fallback (`torch.cuda.is_available()`)
+
 **Key Capabilities:**
 - HDR multi-layer imaging (ImageSetHdr)
 - 3-model AI pipeline (segmentation + classification + stem detection)
@@ -305,6 +311,8 @@ What was accomplished.
 - PLC-based I/O (plc_eip)
 
 **Model Files:** ~1.1GB in `threading_ws/src/cherry_detection/resource/` (excluded from git)
+- Production models in `resource/` root
+- Experimental models in `resource/experimental/` (e.g., ConvNeXt V2)
 
 **Architecture Documentation:**
 - [threading_ws INDEX](docs/core/architecture/threading_ws/INDEX.md) - System overview
@@ -343,7 +351,7 @@ What was accomplished.
 - Model evaluation: Production model evaluation cell added to notebook
 - **threading_ws:** Complete production workspace with 3-model pipeline
 
-**Next Action:** STORY-005 (start next session with progress review)
+**Next Action:** Discuss "Maybe" class handling workflow (modernization vs legacy script)
 
 ## 13. Agent Guidelines
 

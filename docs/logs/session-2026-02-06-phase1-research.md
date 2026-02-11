@@ -24,7 +24,7 @@ From project documentation review:
 | **Training Infrastructure** | Google Colab Pro (Tesla T4) | LESSONS.md:114 |
 | **Training Time** | ~30s/epoch, 30 epochs standard | MODEL_EXPERIMENTS.md:82 |
 | **Critical Blocker** | No labeled "maybe" data | User confirmed |
-| **Inference Hardware** | CPU only (production) | architecture-quick-reference.md:139 |
+| **Inference Hardware** | NVIDIA GPU (production), CPU (dev benchmarks) | architecture-quick-reference.md:139, HARDWARE_SPECIFICATIONS.md |
 
 ---
 

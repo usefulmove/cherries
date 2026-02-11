@@ -6,7 +6,7 @@ Industrial cherry processing requires a high-speed, automated solution for detec
 ## Goals
 1. **Accuracy**: High recall for "Pit" class (target >93%) to ensure food safety.
 2. **Efficiency**: High precision for "Clean" class to minimize the rejection of good fruit.
-3. **Real-time Performance**: Maintain inference latency under 30ms per frame (CPU) to match conveyor throughput.
+3. **Real-time Performance**: Maintain inference latency comparable to production baseline (~16ms on CPU) to ensure throughput.
 4. **Iterative Improvement**: Establish a robust training system to refine models based on production data.
 
 ## Scope
@@ -21,7 +21,24 @@ Industrial cherry processing requires a high-speed, automated solution for detec
 - Real-time training on the edge device.
 
 ## Constraints
-- **Hardware**: Allied Vision infrared cameras, uldaq encoder, pneumatic actuators.
-- **Compute**: Local edge system for inference; Google Colab Pro for training (due to local GPU limits).
-- **Software**: ROS2 Humble, PyTorch, Ubuntu 22.04.
-- **Data**: Training data managed via Google Drive.
+
+### Hardware
+- **Cameras:** Allied Vision infrared cameras (legacy: Mako G-319/G-507) → Cognex (current)
+- **Sensors:** ULDAQ encoder for belt tracking
+- **Actuation:** Pneumatic rejection valves, Fanuc robotic arm
+
+### Compute Infrastructure
+
+| Component | Hardware | Purpose |
+|-----------|----------|---------|
+| **Production System** | NVIDIA GPU (model TBD) + CPU | Real-time inference on edge device |
+| **Training System** | Google Colab Pro (Tesla T4/A100) | Model training and experimentation |
+| **Development System** | Local workstation (CPU) | Code development, relative benchmarking |
+
+**Note:** Training requires GPU resources beyond local workstation capabilities, hence Colab Pro usage.
+
+### Software
+- **OS:** Ubuntu 22.04
+- **Framework:** ROS2 Humble
+- **ML:** PyTorch (with CUDA support for GPU inference)
+- **Data:** Training datasets managed via Google Drive

@@ -36,7 +36,7 @@ This document specifies the exact experimental designs for our next optimization
 | **Accuracy** | (TP + TN) / Total | ≥94.05% | Must beat or match baseline |
 | **Pit Recall** | TP / (TP + FN) | ≥99.0% | Food safety critical - can't miss pits |
 | **Clean Precision** | TN / (TN + FP) | ≥95.0% | Don't waste product on false alarms |
-| **Latency** | CPU inference time | <30ms | System constraint |
+| **Latency** | CPU inference time | ~16ms | Production Baseline (faster on GPU) |
 | **Model Size** | .pt file size | <100MB | Deployment constraint |
 
 ---
@@ -186,7 +186,7 @@ Run in parallel if possible:
 **⚠️ DINOv2 Resolution Constraint:** DINOv2 requires input dimensions to be a multiple of the patch size (14x14). Changed `input_size` from **128** to **126** (14 * 9) in the config.
 
 ### Phase 2C: Speed Option (Day 3)
-1.  **EXP-003 (EfficientNet-B2):** Only if EXP-002/006 are too slow (>30ms).
+1.  **EXP-003 (EfficientNet-B2):** Only if EXP-002/006 are too slow (significantly worse than 16ms baseline).
 
 ### Decision Logic
 | Outcome | Action |
