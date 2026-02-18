@@ -3,7 +3,7 @@
 **cherry_system (Legacy)** → **threading_ws (Production)**
 
 **Date:** 2025-02-05  
-**Status:** threading_ws copied and operational, cherry_system archived for reference
+**Status:** threading_ws operational. cherry_system removed from repo (available in git history).
 
 ---
 
@@ -395,4 +395,4 @@ The migration from `cherry_system` to `threading_ws` represents a **complete sys
 - **Better orchestration:** Async action-based control
 - **Better integration:** PLC-based I/O, buffered robot communication
 
-**Both systems coexist** in the repository. Use `threading_ws` for production, reference `cherry_system` for legacy compatibility.
+**threading_ws** is the production system. **cherry_system** has been removed from the repository (available in git history).

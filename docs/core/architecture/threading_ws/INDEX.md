@@ -9,7 +9,7 @@ impact_area: All
 **Status:** Production System (Current)  
 **Location:** `/home/dedmonds/repos/traina/threading_ws/`  
 **ROS2 Workspace:** Complete, self-contained  
-**Previous System:** `cherry_system/` (Legacy - see Migration Guide)
+**Previous System:** `cherry_system/` (Removed - see Migration Guide)
 
 ## Purpose
 

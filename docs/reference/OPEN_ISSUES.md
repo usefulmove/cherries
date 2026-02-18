@@ -104,23 +104,23 @@ CIPster library is now part of the parent repo without submodule complexity.
 
 ## Issue 4: Legacy System Maintenance
 
-**Status:** Ongoing  
+**Status:** Resolved  
+**Date:** 2026-02-17
 **Document:** [MIGRATION_cherry_system_to_threading_ws.md](./MIGRATION_cherry_system_to_threading_ws.md)  
-**Priority:** Low
+**Priority:** Completed
 
 ### Context
-Two systems coexist in repository:
-- `cherry_system/` - Legacy 2-model pipeline, simpler interfaces, Python orchestration
-- `threading_ws/` - Production 3-model pipeline, HDR interfaces, C++ orchestration
+Two systems coexisted in repository:
+- `cherry_system/` - Legacy 2-model pipeline (Removed 2026-02-17)
+- `threading_ws/` - Production 3-model pipeline
 
-### Maintenance Notes
-- `cherry_system/` is read-only archive (reference only)
-- `threading_ws/` receives updates and is the production system
-- Differences documented in migration guide
+### Resolution
+- `cherry_system/` folder removed from repository
+- Documentation updated to reflect removal
+- References to legacy code removed from `threading_ws`
 
-### Next Actions
-- [ ] Archive cherry_system documentation (mark as legacy)
-- [ ] Ensure all new development happens in threading_ws
+### Result
+Repo is now clean and focused on production system. Legacy code available in git history.
 
 ---
 

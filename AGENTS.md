@@ -321,9 +321,9 @@ What was accomplished.
 
 ### Legacy System: cherry_system (Archived)
 
-**Location:** `cherry_system/` - Retained for reference
+**Location:** `cherry_system/` - Removed (Available in git history)
 
-**Status:** Legacy, 2-model pipeline, simpler interfaces
+**Status:** Legacy, 2-model pipeline. References in docs are for historical context.
 
 ### Experiment Tracking
 

@@ -163,11 +163,11 @@ PHYSICAL WORLD                        SOFTWARE PIPELINE
 
 | Model | Canonical Path | Size | Status |
 |-------|---------------|------|--------|
-| **Classification (Production)** | `cherry_system/cherry_detection/resource/cherry_classification.pt` | ~90MB | ⚠️ VERIFY ACTIVE |
-| **Classification (Duplicate)** | `cherry_system/control_node/resource/cherry_classification.pt` | ~90MB | ⚠️ BUG: May load instead |
+| **Classification (Production)** | `cherry_system/cherry_detection/resource/cherry_classification.pt` (Removed) | ~90MB | ⚠️ VERIFY ACTIVE |
+| **Classification (Duplicate)** | `cherry_system/control_node/resource/cherry_classification.pt` (Removed) | ~90MB | ⚠️ BUG: May load instead |
 | **Classification (Best Training)** | `training/experiments/resnet50_augmented_unnormalized/model_best_fixed.pt` | ~90MB | 94.05% accuracy |
 | **Classification (ResNet18)** | `training/experiments/resnet18_augmented_unnormalized/model_best.pt` | ~43MB | 91.92% accuracy |
-| **Segmentation** | `cherry_system/cherry_detection/resource/cherry_segmentation.pt` | ~168MB | Mask R-CNN |
+| **Segmentation** | `cherry_system/cherry_detection/resource/cherry_segmentation.pt` (Removed) | ~168MB | Mask R-CNN |
 
 **⚠️ Known Bug:** Model may load from `control_node/resource` instead of `cherry_detection/resource`. Always verify at runtime.
 
@@ -175,10 +175,10 @@ PHYSICAL WORLD                        SOFTWARE PIPELINE
 
 | Component | Path | Key Files |
 |-----------|------|-----------|
-| **Classification** | `cherry_system/cherry_detection/` | ai_detector.py, detector_node.py |
-| **Control Logic** | `cherry_system/control_node/` | control_node.py |
+| **Classification** | `cherry_system/cherry_detection/` (Removed) | ai_detector.py, detector_node.py |
+| **Control Logic** | `cherry_system/control_node/` (Removed) | control_node.py |
 | **Training** | `training/` | scripts/train.py, notebooks/ |
-| **Interfaces** | `cherry_system/cherry_interfaces/` | Custom ROS2 messages/services |
+| **Interfaces** | `cherry_system/cherry_interfaces/` (Removed) | Custom ROS2 messages/services |
 
 ---
 
