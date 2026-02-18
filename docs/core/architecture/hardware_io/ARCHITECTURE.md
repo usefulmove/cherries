@@ -11,17 +11,17 @@ Manages all low-level communication with physical hardware devices, excluding th
 
 ## Key Components
 
-### 1. USB I/O Node (`cherry_system/usb_io/`)
-*   **Driver**: Interfaces with the **ULDAQ** (Universal Library for Data Acquisition) device.
+### 1. PLC Ethernet/IP Node (`threading_ws/src/plc_eip/`)
+*   **Driver**: Interfaces with the **Omron/Keyence PLC** via EtherNet/IP (CIP).
 *   **Responsibilities**:
-    *   **Encoder Reading**: Publishes belt travel distance (ticks) to `control_node`.
-    *   **Pneumatic Control**: Triggers air jets for rejection based on commands.
-    *   **Strobe Triggering**: Hardware-timed output for camera synchronization.
+    *   **Encoder Reading**: Reads high-speed counter (HSC) values for belt position.
+    *   **I/O Control**: Manages digital inputs/outputs (latches, lights).
+    *   **Synchronization**: Provides the time base for the entire system.
 
 ## Hardware Specs
-*   **Encoder**: High-resolution rotary encoder attached to the conveyor drive.
-*   **IO Board**: Measurement Computing (MCC) USB-DAQ.
-*   **Actuators**: High-speed pneumatic valves.
+*   **Encoder**: High-resolution rotary encoder attached to conveyor.
+*   **Controller**: Industrial PLC (EtherNet/IP capable).
+*   **Actuators**: Pneumatic valves controlled via PLC outputs.
 
 ## Discovery Links
-*   **Code**: `src/cherry_system/usb_io/`
+*   **Code**: `threading_ws/src/plc_eip/`

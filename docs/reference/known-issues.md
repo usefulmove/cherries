@@ -1,14 +1,16 @@
 # Known Issues & Technical Debt
 
-This document tracks bugs, architectural issues, and cleanup items to be addressed after the repository restructuring.
+This document tracks bugs, architectural issues, and cleanup items.
 
-## Model Loading Bug (High Priority)
+> **Note:** Issues related to the legacy `cherry_system` have been marked as OBSOLETE following its removal on 2026-02-17.
+
+## Model Loading Bug (OBSOLETE - Legacy System)
 
 ### Issue
 The `cherry_detection` node loads model weights from the wrong package directory due to a configuration error in the source code.
 
 ### Location
-- **File:** `cherry_system/cherry_detection/cherry_detection/detector.py:68`
+- **File:** `cherry_system/cherry_detection/cherry_detection/detector.py:68` (Removed)
 - **Current code:**
   ```python
   package_share_directory = get_package_share_directory('control_node')  # BUG!
@@ -25,27 +27,18 @@ The `cherry_detection` node loads model weights from the wrong package directory
 
 ---
 
-## Code Duplication & Legacy Artifacts
+## Code Duplication & Legacy Artifacts (OBSOLETE - Resolved)
 
 ### Issue
-The `control_node` package contains a full copy of the detection code and model weights, which are legacy artifacts from before the detection logic was moved to its own package.
+The `control_node` package contains a full copy of the detection code and model weights.
 
-### Details
-- **Duplicate Files:** `detector.py` and `ai_detector.py` exist in both `control_node` and `cherry_detection`.
-- **Runtime Behavior:** `control_node` disables its local detector (line 159) and uses the `cherry_detection` service instead.
-- **Result:** The code in `control_node` is "dead code", but the *model files* in `control_node` are active (due to the bug above).
+### Status
+Resolved by removal of `cherry_system`.
 
 ---
 
 ## Open Task List (Cleanup)
 
-1.  **Fix Model Loading Bug:**
-    - Update `cherry_detection/detector.py` to use `get_package_share_directory('cherry_detection')`.
-
-2.  **Verify & Remove Dead Code:**
-    - Confirm `control_node` relies solely on the service call.
-    - Remove `detector.py`, `ai_detector.py`, and model weights from `control_node`.
-
-3.  **Clean Up Resources:**
-    - Ensure `cherry_detection/resource/` contains the correct, active model weights.
-    - Delete unused/duplicate weights to reclaim disk space.
+1.  **Fix Model Loading Bug:** (Done - System Replaced)
+2.  **Verify & Remove Dead Code:** (Done - cherry_system removed)
+3.  **Clean Up Resources:** (Done)

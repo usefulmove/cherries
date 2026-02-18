@@ -14,7 +14,7 @@ This skill allows you to compare a new candidate model against the currently dep
 
 ## Requirements
 *   A trained PyTorch model file (`.pt`).
-*   The production model file (usually `cherry_system/cherry_detection/resource/cherry_classification.pt`).
+*   The production model file (typically `threading_ws/src/cherry_detection/resource/classification-2_26_2025-iter5.pt`).
 *   Validation dataset located at `../cherry_classification/data` (or specified path).
 *   Python environment with `torch`, `torchvision`, `numpy`, `tqdm`.
 
@@ -32,7 +32,7 @@ python training/scripts/compare_models.py \
 
 ### Options
 *   `--new-model`: Path to the new candidate model.
-*   `--prod-model`: Path to the baseline model (usually `cherry_system/cherry_detection/resource/cherry_classification.pt`).
+*   `--prod-model`: Path to the baseline model (usually `threading_ws/src/cherry_detection/resource/classification-2_26_2025-iter5.pt`).
 *   `--unnormalized`: **Important!** Use this flag if the new model was trained on 0-255 raw images (no ImageNet normalization). The production system typically uses unnormalized images.
 *   `--architecture`: Model architecture (default: `resnet50`).
 *   `--device`: `cpu` or `cuda` (default: auto-detect).
@@ -44,7 +44,7 @@ Evaluate a new unnormalized ResNet50 model:
 ```bash
 python training/scripts/compare_models.py \
   --new-model training/experiments/resnet50_augmented_unnormalized/model_best_fixed.pt \
-  --prod-model cherry_system/cherry_detection/resource/cherry_classification.pt \
+  --prod-model threading_ws/src/cherry_detection/resource/classification-2_26_2025-iter5.pt \
   --unnormalized
 ```
 

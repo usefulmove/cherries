@@ -37,18 +37,17 @@ This cherry processing system uses a two-stage deep learning pipeline:
 
 ### Core Implementation
 ```
-cherry_system/cherry_detection/cherry_detection/
-├── ai_detector.py          # Main PyTorch implementation
+threading_ws/src/cherry_detection/cherry_detection/
+├── ai_detector3.py         # Main PyTorch implementation (v6/hdr_v1)
 └── resource/
-    ├── cherry_segmentation.pt   # Mask R-CNN weights
-    └── cherry_classification.pt # ResNet50 weights
+    ├── seg_model_red_v1.pt      # Mask R-CNN weights
+    └── classification-*.pt      # ResNet50 weights
 ```
 
 ### Integration (ROS2 Wrapper)
 ```
-cherry_system/control_node/control_node/
-├── ai_detector.py          # Duplicate for control node
-└── detector.py            # Wrapper: ML → ROS2 messages
+threading_ws/src/cherry_detection/cherry_detection/
+├── detector_node.py        # ROS2 Node (Service Server)
 ```
 
 ## What Each Model Does

@@ -53,7 +53,7 @@ def predict(model, image, device):
 ```
 
 ### Key Code Locations
-- `cherry_system/cherry_detection/cherry_detection/ai_detector.py` - Main inference implementation
+- `threading_ws/src/cherry_detection/cherry_detection/ai_detector3.py` - Main inference implementation (v6/hdr_v1)
 - `training/scripts/` - Training and evaluation utilities
 
 ## Related Resources

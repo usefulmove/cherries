@@ -189,12 +189,12 @@ See [Training Data Reference](../../reference/training-data.md) for dataset deta
 
 ## Discovery Links
 
-*   **Code:** `src/cherry_system/cherry_detection/`
+*   **Code:** `threading_ws/src/cherry_detection/`
 *   **Backup Code:** `/media/dedmonds/Extreme SSD/traina cherry line/threading_ws/src/cherry_detection/`
 *   **Training Code:** `training/`
 *   **Analysis:** [ResNet50 Analysis](./RESNET50_ANALYSIS.md)
 *   **Stem Detection:** [STEM_DETECTION.md](./STEM_DETECTION.md)
 *   **Skill:** `../../skills/benchmark-latency/`
 *   **Visualization:** See [Tracking & Orchestration](../tracking_orchestration/ARCHITECTURE.md) for projection system details
-*   **Category Handling:** `cherry_system/cherry_detection/cherry_detection/ai_detector3.py:346, 616-625` (3-class classification logic)
-*   **Stem Integration:** `detector_node.py:473-485` (stem message handling)
+*   **Category Handling:** `threading_ws/src/cherry_detection/cherry_detection/ai_detector3.py:346, 616-625` (3-class classification logic)
+*   **Stem Integration:** `threading_ws/src/cherry_detection/cherry_detection/detector_node.py:473-485` (stem message handling)

@@ -11,20 +11,20 @@ The central nervous system. It coordinates the timing of all other layers, maint
 
 ## Key Components
 
-### 1. Control Node (`cherry_system/control_node/`)
-*   **Role**: The conductor.
+### 1. Composite Node (`threading_ws/src/composite/`)
+*   **Role**: The conductor (C++ Action Server).
 *   **Logic**:
-    *   **Triggering**: Monitors `usb_io` encoder ticks. Fires `avt_vimba_camera`.
-    *   **Image Assembly**: Merges Top/Bottom images.
-    *   **Inference Request**: Calls `cherry_detection` service.
-    *   **Frame Tracking**: `FrameTracker` class maintains a queue of detected cherries, updating their position ($x, y$) based on the moving belt ($\Delta \text{ticks}$).
+    *   **Triggering**: Monitors `plc_eip` encoder ticks/triggers. Fires `cameras` via `Acquisitionhdr` action.
+    *   **Image Assembly**: `image_combiner` merges Top/Bottom images.
+    *   **Inference Request**: Calls `cherry_detection` service (`Detectionhdr`).
+    *   **Frame Tracking**: Maintains a queue of detected cherries.
     *   **Decision**: Decides when a cherry reaches the ejector or robot pick zone.
 
-### 2. Robot Communication (`cherry_system/fanuc_comms/`)
+### 2. Robot Communication (`threading_ws/src/fanuc_comms/`)
 *   **Protocol**: TCP/IP socket communication with Fanuc robot controller.
 *   **Data**: Sends $(x, y, \text{class})$ coordinates for sorting.
 
-### 3. Visualization (`cherry_system/tracking_projector/`)
+### 3. Visualization (`threading_ws/src/tracking_projector/`)
 *   **Tech**: C++ / Qt / OpenGL.
 *   **Function**: Projects colored circles directly onto the physical cherries on the belt for real-time human feedback and manual review.
 
@@ -45,10 +45,10 @@ The central nervous system. It coordinates the timing of all other layers, maint
 *   **Sync**: Subscribes to the tracker state to keep projections locked to the moving fruit.
 
 ## Design Decisions
-*   **Service-Based Inference**: Inference is blocking and heavy. `control_node` offloads it to `cherry_detection` (Service) so the main control loop (Encoder counting) never blocks.
+*   **Service-Based Inference**: Inference is blocking and heavy. `composite` offloads it to `cherry_detection` (Service) so the main control loop never blocks.
 
 ## Discovery Links
-*   **Code**: `src/cherry_system/control_node/`
-*   **Visualization Code**: `src/cherry_system/tracking_projector/`
+*   **Code**: `threading_ws/src/composite/`
+*   **Visualization Code**: `threading_ws/src/tracking_projector/`
 *   **Classification Categories**: See [Inference Pipeline](../inference_pipeline/ARCHITECTURE.md) for threshold logic and category definitions
-*   **Projection Rendering**: `cherry_system/tracking_projector/src/helper.cpp:66-69` (color brushes), `115-134` (rendering logic)
+*   **Projection Rendering**: `threading_ws/src/tracking_projector/src/projector_node.cpp` (check implementation)
