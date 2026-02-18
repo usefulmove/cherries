@@ -27,6 +27,44 @@ Productivity patterns, tooling decisions, and process improvements.
 
 ## Lessons
 
+### [2026-02-17] ML/Training: Validation Sets Must be "Mined" in 2-Pass Training
+**Context:**
+Implementing a 2-stage training workflow (Binary → Mining → 3-Class Fine-tune). The notebook crashed with `FileNotFoundError` during the fine-tuning stage.
+
+**What We Found:**
+The mining logic correctly processed the training set (moving hard examples to a `maybe/` folder) but skipped the validation set. When `torchvision.ImageFolder` tried to load the validation data for Stage 2, it found an empty `maybe/` folder (created by `mkdir` but never populated) and crashed.
+
+**Outcome:**
+Updated the pipeline to run the mining logic on *both* Train and Validation sets. Added a safety check to delete empty class folders if no examples are found.
+
+**Key Takeaway:**
+When modifying dataset structure dynamically (e.g., Active Learning, Hard Mining), apply the logic symmetrically to Train and Validation sets. Validation data must represent the same class distribution and "hardness" as training data to be a valid metric.
+
+**References:**
+- `training/notebooks/colab_2stage_training.ipynb`
+- [Session Log](../logs/session_2026-02-17_robust_training.md)
+
+---
+
+### [2026-02-17] ML/Data: Ambiguity Rate is ~10% in Real-World Cherry Data
+**Context:**
+We empirically measured the rate of "ambiguous" images by running a trained binary classifier on the full dataset and flagging images with low confidence ($0.35 < p < 0.65$) or incorrect predictions.
+
+**What We Found:**
+- **Training Set:** 6.9% moved to "Maybe"
+- **Validation Set:** 9.3% moved to "Maybe"
+
+**Outcome:**
+This confirms that ~7-10% of the dataset is genuinely difficult or ambiguous. This validates the architectural need for a "Maybe" class safety valve—forcing these into Binary buckets causes noise and errors.
+
+**Key Takeaway:**
+Use "Mining" or "Active Learning" passes not just for training, but for dataset analytics. Knowing your "Ambiguity Rate" helps size your manual review workforce (e.g., if 10% of throughput goes to manual review, do you have enough staff?).
+
+**References:**
+- [Model Report 2-Stage](./MODEL_REPORT_2STAGE.md)
+
+---
+
 ### [2026-02-11] ML/Training: "Maybe" Class is an Active Learning Workflow, Not Just a Threshold
 **Context:**
 Comparison of original training notebooks with production code revealed the true nature of the "Maybe" class. It wasn't just a probability threshold—it was an iterative "active learning" workflow.
@@ -70,7 +108,6 @@ When inheriting legacy ML systems, look for commented-out code in training noteb
 ---
 
 ### [2026-01-30] ML/Training: Model Weight Denormalization Causes Severe Latency Regression
-
 **Context:**
 After training a new ResNet50 model for cherry pit detection, initial CPU inference latency was ~168ms compared to the production baseline of ~16ms. This represented a 10x performance regression that would prevent deployment.
 
@@ -90,7 +127,6 @@ Always validate model weights for denormal values after training, especially whe
 ---
 
 ### [2026-01-30] ML/Training: Unnormalized Training Avoids ROS2 Node Modifications
-
 **Context:**
 The production ROS2 system feeds raw camera images (0-255 pixel values) directly to the model. Our best trained model expected ImageNet-normalized inputs (mean-subtracted, scaled), requiring code changes to the production inference pipeline.
 
@@ -110,7 +146,6 @@ When deploying ML models to production systems with fixed preprocessing pipeline
 ---
 
 ### [2026-02-03] Development Workflow: enso Protocol Migration Requires Careful Path Coordination
-
 **Context:**
 Migrating from enso v0.1.x to v0.2.0 involved moving architecture docs from `docs/architecture/` to `docs/core/architecture/` and creating framework documentation indices. This required updating dozens of internal cross-references.
 
@@ -131,7 +166,6 @@ Documentation restructuring requires systematic planning to avoid broken links a
 ---
 
 ### [2026-02-03] ML/Workflow: Notebook Drift requires Local Smoke Tests
-
 **Context:**
 A custom training loop implemented directly in a Colab notebook for differential learning rates diverged from the tested `src/` library code. Specifically, the notebook used a generic `f1_score` key while the library returned `f1`, causing a `KeyError` after the first epoch of training.
 
@@ -151,7 +185,6 @@ Never re-implement core logic in notebooks if possible. If custom logic is neede
 ---
 
 ### [2026-02-04] ML/Training: Always Verify GPU Availability Before Training
-
 **Context:**
 Ran optimization experiments on Google Colab but the runtime was configured for CPU instead of GPU. Training took ~12 minutes per epoch (vs ~30 seconds with GPU), and the ResNet18 experiment never completed due to time constraints. The differential LR experiment completed but with potentially non-representative results.
 
@@ -182,7 +215,6 @@ if not torch.cuda.is_available():
 ---
 
 ### [2026-02-04] ML/Workflow: Notebook Configuration with Skip Flags for "Run All"
-
 **Context:**
 Optimization experiments in Colab often skip some experiments while running others (e.g., skip inconclusive Exp 1, run Exp 3). The notebook was failing with TypeError when trying to format skipped experiment results.
 
@@ -208,7 +240,6 @@ When a notebook has conditional experiments, use explicit config flags and `is n
 ---
 
 ### [2026-02-04] ML/Training: ResNet18 Achieves 1% Accuracy Drop for 2x Model Compression
-
 **Context:**
 Hypothesis: ResNet18 (11.7M params) can match ResNet50 (25.6M params) accuracy with faster inference.
 
@@ -231,7 +262,6 @@ ResNet18 is acceptable for latency-constrained environments if 1% accuracy drop 
 ---
 
 ### [2026-02-05] Documentation/Workflow: Consolidate Questions Before Critical Meetings
-
 **Context:**
 Preparing for a handoff meeting with the original engineer and Russ. Had accumulated 76 questions across multiple documents (classification-questions.md, developer-questions.md, possible-improvements.md), but this was too many for a productive meeting and had significant overlap.
 
@@ -264,7 +294,6 @@ Before critical meetings, consolidate scattered questions into a single prioriti
 ---
 
 ### [2026-02-05] Architecture/Documentation: Document Operational Details in Architecture Guides
-
 **Context:**
 Discovered through code review that the "maybe" category (label 5) isn't just a classification output—it's a critical safety feature that triggers manual worker review via yellow projection highlights. This operational workflow wasn't captured in the architecture documentation, only the classification logic was mentioned.
 
@@ -303,7 +332,6 @@ Architecture documentation should capture operational workflows, not just techni
 ---
 
 ### [2026-02-06] ML/Training: Two-Stage Training Methodology Has Documented Concerns
-
 **Context:**
 Discovered the production classification model (`classification-2_26_2025-iter5.pt`) was trained using a two-stage approach: Stage 1 trains binary classifier (pit vs no_pit), Stage 2 fine-tunes on misclassifications labeled "maybe" to create 3-class output. This creates the "maybe" class from model errors rather than ground truth labels.
 
@@ -331,7 +359,6 @@ Learning from model errors (two-stage) is inferior to explicit labeling or confi
 ---
 
 ### [2026-02-07] ML/Workflow: Notebooks Must Auto-Update and Handle Type Formatting Safely
-
 **Context:**
 Deploying Phase 2 experiments to Colab failed initially due to two preventable issues:
 1. **Stale Code:** The notebook checked `if ! -d repo` and skipped cloning if the folder existed, leaving the environment with old code that lacked new configs.
@@ -355,7 +382,6 @@ Notebooks should be self-healing. Always include a `git pull` path for existing 
 ---
 
 ### [2026-02-07] ML/Architecture: Foundation Models Have Strict Input Constraints (DINOv2)
-
 **Context:**
 Attempted to use DINOv2 with our standard 128x128 input size. Local validation revealed runtime errors because 128 is not a multiple of the model's 14x14 patch size (128 / 14 = 9.14).
 
@@ -379,7 +405,6 @@ Foundation models often have stricter constraints than standard CNNs (ResNet/Eff
 ---
 
 ### [2026-02-06] ML/Training: FCMAE Pre-training Superior for Defect Detection, But Latency Trumps Accuracy
-
 **Context:**
 Ran Phase 2 SOTA experiments comparing ConvNeXt V2 (FCMAE pre-training), EfficientNet-B2, and DINOv2 foundation models. ConvNeXt V2 achieved 94.21% accuracy (best ever), beating our ResNet50 baseline (94.05%) by 0.16%.
 
